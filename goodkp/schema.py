@@ -157,7 +157,7 @@ class Report(Strict):
     verdict: Optional[Verdict] = None
     blocks: Optional[list[Block]] = Field(default=None, min_length=PILLARS, max_length=PILLARS)
     flags: Optional[list[Flag]] = Field(default=None, min_length=4, max_length=6)
-    holds: Optional[list[Hold]] = Field(default=None, min_length=2, max_length=4)
+    holds: Optional[list[Hold]] = Field(default=None, min_length=2, max_length=5)
     fixed_page: Optional[FixedPage] = None
     plan: Optional[list[PlanStep]] = Field(default=None, min_length=4, max_length=6)
     source: Optional[list[SourceBlock]] = None

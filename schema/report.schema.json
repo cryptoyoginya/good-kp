@@ -688,7 +688,7 @@
      "items": {
       "$ref": "#/$defs/Hold"
      },
-     "maxItems": 4,
+     "maxItems": 5,
      "minItems": 2,
      "type": "array"
     },
