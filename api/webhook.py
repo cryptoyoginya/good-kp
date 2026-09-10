@@ -26,7 +26,10 @@ def process(body: bytes, secret_header: str | None) -> tuple[int, dict]:
     except (json.JSONDecodeError, UnicodeDecodeError):
         return 400, {"ok": False}
 
-    handle_update(update)
+    try:
+        handle_update(update)
+    except Exception as exc:  # noqa: BLE001
+        print(f"webhook: ошибка обработки update {update.get('update_id')}: {type(exc).__name__}: {exc}", file=sys.stderr)
     return 200, {"ok": True}
 
 

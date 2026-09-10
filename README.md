@@ -201,6 +201,7 @@ uv run python bot/poll.py
 
 ```bash
 vercel env add BOT_TOKEN
+vercel env add CHANNELS
 vercel env add REPO_URL
 vercel env add WEBHOOK_SECRET
 vercel deploy --prod

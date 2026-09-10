@@ -188,3 +188,12 @@ def test_webhook_no_secret_configured_allows_any_header(monkeypatch, api):
 def test_webhook_invalid_json_returns_400():
     status, payload = process(b"not json", None)
     assert status == 400
+
+
+def test_webhook_swallows_handler_errors(monkeypatch, capsys):
+    """Кривой update не должен превращаться в 500: Telegram иначе повторяет его бесконечно."""
+    import api.webhook as wh
+    monkeypatch.setattr(wh, "handle_update", lambda u: (_ for _ in ()).throw(KeyError("from")))
+    status, payload = wh.process(b'{"update_id": 7, "message": {"text": "/start"}}', None)
+    assert status == 200 and payload["ok"] is True
+    assert "update 7" in capsys.readouterr().err
