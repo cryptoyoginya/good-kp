@@ -2,7 +2,7 @@
 
 Разбор коммерческого предложения глазами клиента. Методика [Вадима Школьного](https://t.me/ShkolnyiAccount), сборка [Кристины Винтер](https://t.me/vintersbrain).
 
-**Демо:** https://cryptoyoginya.github.io/good-kp/demo/
+**Пример отчета:** скачайте [examples/stroymarket.html](examples/stroymarket.html) и откройте в браузере.
 
 ![Good КП](docs/preview.png)
 
@@ -38,7 +38,7 @@ Good КП собирает этих троих синтетически, чит�
 
 Два пути к одному и тому же файлу:
 
-- **Без кода.** Страница на GitHub Pages и `prompt.md`. Вставляете КП в чат с моделью, получаете JSON, вставляете на страницу, скачиваете отчет.
+- **Без кода.** Файл `paste.html` из репозитория и `prompt.md`. Вставляете КП в чат с моделью, получаете JSON, вставляете его в открытый файл, скачиваете отчет.
 - **Из терминала.** `uv run goodkp run kp.pdf --answers answers.yaml`. Тот же шаблон, тот же результат.
 
 ## Структура
@@ -57,8 +57,9 @@ scripts/
 tests/
   golden/stroymarket/report.json   эталонный отчет
   test_schema.py  test_render.py  test_golden.py  test_ui.py
+examples/
+  stroymarket.html  собранный эталонный отчет
 docs/
-  demo/            собранный эталонный отчет
   spec.md          дизайн системы
 ```
 
@@ -78,7 +79,7 @@ uv run python -c "import json; from goodkp.render import render; from goodkp.sch
 
 ## Что дальше
 
-Рубрика методики как единый источник для промпта и проверок, вызов модели, CLI, страница вставки JSON, бот, который выдает ссылку после подписки на оба канала.
+Рубрика методики как единый источник для промпта и проверок, вызов модели, CLI, файл вставки JSON, бот, который выдает ссылку на репозиторий после подписки на оба канала.
 
 ## Авторы
 

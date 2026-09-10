@@ -16,9 +16,9 @@ Good КП берет коммерческое предложение (КП) и �
 
 Два пути к одному и тому же файлу:
 
-- Продажник без кода. Открывает страницу на GitHub Pages, прогоняет `prompt.md`
-  вместе с текстом КП в чат с моделью, вставляет полученный JSON в поле на странице,
-  видит отчет, жмет «Сохранить HTML».
+- Продажник без кода. Скачивает репозиторий, открывает `paste.html`, прогоняет `prompt.md`
+  вместе с текстом КП в чат с моделью, вставляет полученный JSON в поле,
+  видит отчет, жмет «Сохранить HTML». Хостинга нет, файл работает локально.
 - Инженер. `uv run goodkp run kp.pdf --answers answers.yaml -o report.html`.
   Тот же шаблон, тот же JSON, тот же файл.
 
@@ -52,7 +52,7 @@ good-kp/
   rubric.yaml                    единый источник методики
   schema/report.schema.json      СГЕНЕРИРОВАН из pydantic-моделей
   template/report.html           эталон интерфейса без каркаса, с пустым <script id="data">
-  docs/index.html                GitHub Pages: страница вставки JSON, СОБИРАЕТСЯ из шаблона
+  paste.html                     страница вставки JSON, СОБИРАЕТСЯ из шаблона, открывается локально
   goodkp/
     __init__.py
     cli.py                       команды run, render, check, build
@@ -195,7 +195,7 @@ JS шаблона разбивается на модули по секциям �
 - `render(data: Report, template: str) -> str`: вставляет JSON (экранируя `</`),
   оборачивает каркасом `<!doctype html><html lang="ru"><head>…` с charset, viewport,
   color-scheme dark, и reset `body{margin:0}img{max-width:100%}[hidden]{display:none!important}`.
-- `build_pages()`: собирает `docs/index.html` из того же шаблона, добавляя панель
+- `build_paste()`: собирает `paste.html` из того же шаблона, добавляя панель
   вставки JSON и кнопку «Сохранить HTML», которая формирует standalone-файл
   тем же каркасом и отдает через `<a download>`.
 
