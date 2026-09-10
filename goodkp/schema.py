@@ -146,14 +146,16 @@ class SourceBlock(Strict):
     id: str = Field(pattern=r"^src-\d+$")
     kind: Literal["h", "p", "note", "list", "table"]
     text: Optional[str] = None            # h, p, note
-    items: Optional[list[str]] = None     # list
-    rows: Optional[list[list[str]]] = None  # table, первая строка это шапка
+    items: Optional[list[str]] = Field(default=None, min_length=1)     # list
+    rows: Optional[list[list[str]]] = Field(default=None, min_length=1)  # table, первая строка это шапка
 
     @model_validator(mode="after")
     def _payload(self):
         need = {"h": "text", "p": "text", "note": "text", "list": "items", "table": "rows"}[self.kind]
         if getattr(self, need) is None:
             raise ValueError(f"блок {self.id} kind={self.kind} требует поле {need}")
+        if self.rows is not None and any(not r for r in self.rows):
+            raise ValueError(f"блок {self.id}: пустых строк в rows быть не должно")
         return self
 
 

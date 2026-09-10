@@ -25,7 +25,10 @@ def inject(template: str, data: dict) -> str:
 
 
 def wrap(inner: str) -> str:
-    """Голова: title и первый <style> шаблона. Тело: все от первого <script src= или первого не-head тега."""
+    """Режет шаблон по первому тегу <script>.
+
+    Все до него (title и style) уходит в head, все от него и дальше в body.
+    """
     cut = inner.find("<script")
     if cut < 0:
         cut = len(inner)

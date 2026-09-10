@@ -3,6 +3,8 @@ import pytest
 from pydantic import ValidationError
 from goodkp.schema import Report, export_schema
 
+from tests.conftest import ROOT
+
 
 def minimal() -> dict:
     reader = lambda kind, name: {
@@ -94,6 +96,8 @@ def test_export_schema_roundtrip():
     s = export_schema()
     assert s["title"] == "Report" and "blocks" in s["properties"]
     json.dumps(s)
+    exported = json.loads((ROOT / "schema" / "report.schema.json").read_text(encoding="utf-8"))
+    assert exported == s, "schema/report.schema.json отстал, пересоберите его"
 
 
 def test_banned_glyphs_rejected_in_list_fields():
@@ -151,3 +155,21 @@ def test_badge_only_when_state_drop():
         d["readers"][0]["feed"][0] = {"step": "1", "text": "т", "state": state, "badge": "Закрыл файл"}
         with pytest.raises(ValidationError, match="badge только при state drop"):
             Report.model_validate(d)
+
+
+def test_empty_list_block_rejected():
+    d = minimal()
+    d["source"] = [{"id": "src-1", "kind": "list", "items": []}]
+    with pytest.raises(ValidationError, match="items"):
+        Report.model_validate(d)
+
+
+def test_empty_table_rejected():
+    d = minimal()
+    d["source"] = [{"id": "src-1", "kind": "table", "rows": []}]
+    with pytest.raises(ValidationError, match="rows"):
+        Report.model_validate(d)
+    d = minimal()
+    d["source"] = [{"id": "src-1", "kind": "table", "rows": [["шапка"], []]}]
+    with pytest.raises(ValidationError, match="пустых строк"):
+        Report.model_validate(d)
