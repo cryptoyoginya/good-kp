@@ -9,7 +9,14 @@ dependencies = ["pydantic>=2.7"]
 goodkp = "goodkp.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8", "beautifulsoup4>=4.12", "lxml>=5", "playwright>=1.45", "pytest-playwright>=0.5"]
+dev = [
+    "pytest>=8",
+    "beautifulsoup4>=4.12",
+    "lxml>=5",
+    "playwright>=1.45",
+    "pytest-playwright>=0.5",
+    "pillow>=12.3.0",
+]
 
 [build-system]
 requires = ["hatchling"]
