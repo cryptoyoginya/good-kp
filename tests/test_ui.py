@@ -105,3 +105,54 @@ def test_bad_date_falls_back_to_nodata(page, page_html, tmp_path):
     pg.close()
     assert has_nodata
     assert errors == []
+
+
+def test_was_now_toggle(page):
+    page.click("#s-blocks .block:first-child .brow")
+    page.wait_for_timeout(300)
+    blk = page.locator("#s-blocks .block:first-child")
+    assert blk.locator(".now").is_visible() and not blk.locator(".was").is_visible()
+    blk.locator('[data-v="was"]').click()
+    page.wait_for_timeout(300)
+    assert blk.locator(".was").is_visible() and not blk.locator(".now").is_visible()
+
+
+def test_chat_completes_under_reduced_motion(page):
+    shown = page.evaluate("document.querySelectorAll('#chat .m.in:not([hidden])').length")
+    total = page.evaluate("document.querySelectorAll('#chat .m').length")
+    assert shown == total
+
+
+def test_all_sections_present(page):
+    for sec in ["s-toc", "s-intake", "s-verdict", "s-readers", "s-blocks", "s-flags",
+                "s-fixed", "s-plan", "s-method", "s-source"]:
+        assert page.locator("#" + sec).count() == 1
+
+
+def test_screenshot_matches_baseline(page, page_html, tmp_path):
+    """Скриншот снимается на свежей странице того же браузера, а не на модульной
+    `page`: test_was_now_toggle кликает и мутирует общую страницу, а порядок
+    тестов в файле не должен влиять на результат сравнения со скриншотом.
+    """
+    from pathlib import Path
+    from PIL import Image, ImageChops
+    base = Path("tests/screenshots/baseline/full.png")
+    actual = Path("tests/screenshots/actual")
+    actual.mkdir(parents=True, exist_ok=True)
+    shot = page.context.browser.new_page(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
+    shot.goto(page_html.as_uri())
+    shot.wait_for_timeout(500)
+    shot.screenshot(path=str(actual / "full.png"), full_page=True)
+    shot.close()
+    if not base.exists():
+        import shutil
+        base.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(actual / "full.png", base)
+        return
+    a, b = Image.open(actual / "full.png").convert("RGB"), Image.open(base).convert("RGB")
+    assert a.size == b.size, f"размер {a.size} против {b.size}"
+    diff = ImageChops.difference(a, b).getbbox()
+    if diff:
+        hist = ImageChops.difference(a, b).convert("L").histogram()
+        changed = sum(hist[8:]) / (a.size[0] * a.size[1])
+        assert changed < 0.01, f"изменилось {changed:.1%} пикселей"
