@@ -28,6 +28,14 @@ def block_state_of(cls):
     # прототип использует классы crit/warn/good у .block (не crit/weak/ok, как в прозе брифа)
     return "crit" if "crit" in cls else "weak" if "warn" in cls else "ok"
 
+def feed_item(li):
+    """Шаг ленты. Бейдж «отвалился» лежит в данных: он в роде персоны."""
+    item = {"step": step_of(t(li.select_one(".step"))), "text": t(li.p),
+            "state": state_of(li.get("class", []))}
+    if item["state"] == "drop":
+        item["badge"] = t(li.select_one(".st"))
+    return item
+
 readers = []
 for pane in soup.select("#readers .pane"):
     tiles = pane.select(".ptiles > div")
@@ -35,8 +43,7 @@ for pane in soup.select("#readers .pane"):
         "name": t(pane.select_one(".pc h3")), "role": t(pane.select_one(".pc h3").find_next_sibling()),
         "kind": ["decider", "champion", "executor"][len(readers)],
         "matters": t(tiles[0].p), "reads": t(tiles[1].p), "outcome": t(tiles[2].p),
-        "feed": [{"step": step_of(t(li.select_one(".step"))), "text": t(li.p), "state": state_of(li.get("class", []))}
-                 for li in pane.select(".feed .msg")],
+        "feed": [feed_item(li) for li in pane.select(".feed .msg")],
     })
 
 chat = []
@@ -96,7 +103,8 @@ data = {
     "readers": readers, "chat": chat,
     "verdict": {"speaker": t(soup.select_one(".memo-t b")), "text": t(soup.select_one("#memoQ"))},
     "blocks": blocks, "flags": flags, "holds": holds,
-    "fixed_page": {"subject": t(soup.select_one(".msubj")), "from_initials": t(soup.select_one(".mav")), "sections": sections},
+    "fixed_page": {"subject": t(soup.select_one(".msubj")), "from_initials": t(soup.select_one(".mav")),
+                   "contacts": t(soup.select_one(".doc-foot")), "sections": sections},
     "plan": plan, "source": source,
 }
 Report.model_validate(data)

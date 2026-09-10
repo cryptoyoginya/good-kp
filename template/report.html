@@ -604,8 +604,9 @@ window.GK = (function(){
       '<div class="chat-t"><b>' + nb('КП от ' + d.meta.vendor) + '</b><span>' + esc(names.join(', ')) + '</span></div>' +
       '<div class="chat-timer" id="timer" data-label="' + esc(label) + '"><span>' + esc(label) + '</span><b>0:00</b></div></div>';
     var msgs = d.chat.map(function(m){
-      var attrs = { 'class': 'm ' + m.side, 'data-wait': m.side === 'me' ? 300 + Math.min(m.text.length * 30, 3000) : 500 + Math.min(m.text.length * 12, 1200) };
-      if (m.side === 'them') { attrs['data-name'] = m.name; attrs['data-type'] = 800 + Math.min(m.text.length * 20, 1600); }
+      var len = m.text.length;
+      var attrs = { 'class': 'm ' + m.side, 'data-wait': m.side === 'me' ? 250 + Math.min(len * 15, 1250) : 330 + Math.min(len * 7, 750) };
+      if (m.side === 'them') { attrs['data-name'] = m.name; attrs['data-type'] = 440 + Math.min(len * 12, 1200); }
       if (m.timer) attrs['data-timer'] = m.timer;
       var inner = m.file
         ? '<div class="file"><span class="ico">' + esc(m.file.name.split('.').pop().toUpperCase()) + '</span><span><b>' + nb(m.file.name) + '</b><i>' + nb(m.file.size) + '</i></span></div>'
@@ -665,7 +666,7 @@ window.GK = (function(){
   /* кто читал */
   var STEP = { pre: 'Сначала цена', '1': '1. Проблема', '2': '2. Цели', '3': '3. Решение',
                '4': '4. Как сделаем', '5': '5. Почему мы', '6': '6. Почему точно' };
-  var DROP = { decider: ['crit', 'Закрыл файл'], champion: ['crit', 'Отвалилась'], executor: ['weak', 'Споткнулся'] };
+  var DROPCLS = { decider: 'crit', champion: 'crit', executor: 'weak' };
   R.readers = function(d){
     var tabs = d.readers.map(function(r, i){
       return '<button role="tab" type="button" aria-selected="' + (i ? 'false' : 'true') + '" data-i="' + i + '">' + esc(r.name) + '</button>';
@@ -673,8 +674,8 @@ window.GK = (function(){
     var panes = d.readers.map(function(r, i){
       var feed = r.feed.map(function(f, j){
         var cls = 'msg' + (f.step === 'pre' ? ' pre' : '') + (f.state === 'drop' ? ' drop' : f.state === 'off' ? ' off' : '');
-        var drop = DROP[r.kind] || DROP.executor;
-        var badge = f.state === 'drop' ? '<span class="st ' + drop[0] + '">' + nb(drop[1]) + '</span>' : '';
+        var sev = DROPCLS[r.kind] || DROPCLS.executor;
+        var badge = f.state === 'drop' ? '<span class="st ' + sev + '">' + nb(f.badge) + '</span>' : '';
         return '<li class="' + cls + '" style="--i:' + j + '"><span class="step">' + nb(STEP[f.step]) + '</span>' +
           '<p>' + nb(f.text) + '</p>' + badge + '</li>';
       }).join('');
@@ -732,16 +733,6 @@ window.GK = (function(){
     return '<div class="holds-h">' + nb('Что уже держит') + '</div><ul>' + li + '</ul>';
   };
 
-  /* контакты в подвале письма: «Роль: Имя. Телефон» разворачивается в «Имя, роль. Телефон» */
-  function contacts(d){
-    var last = null;
-    d.source.forEach(function(b){ if (b.kind === 'p') last = b; });
-    var t = last ? last.text : '';
-    var m = t.match(/^([^:]+):\s*([^.]+\.)\s*(.*)$/);
-    var who = m ? m[2] + ', ' + m[1].charAt(0).toLowerCase() + m[1].slice(1) + '. ' + m[3] : t;
-    return d.meta.vendor + '. ' + who;
-  }
-
   /* исправленная первая страница в виде письма */
   R.doc = function(d){
     var f = d.fixed_page, m = d.meta;
@@ -749,16 +740,16 @@ window.GK = (function(){
     var body = f.sections.map(function(s, i){
       return '<div class="ds" style="--i:' + (i + 1) + '"><h4>' + nb(s.title) + '</h4><p>' + ph(s.text) + '</p></div>';
     }).join('');
-    return '<div class="mail-bar"><span class="mail-back">Входящие</span><span class="mail-cnt">1 из 3</span></div>' +
+    return '<div class="mail-bar"><span class="mail-back">Входящие</span><span class="mail-cnt">' + nb('Черновик') + '</span></div>' +
       '<div class="doc-head"><span class="mav">' + esc(f.from_initials) + '</span><div class="mhd">' +
-      '<div class="mrow"><b class="mfrom">' + nb(m.vendor) + '</b><span class="mdate">' + esc(GK.mailDate(m.kp_date)) + ', 10:12</span></div>' +
+      '<div class="mrow"><b class="mfrom">' + nb(m.vendor) + '</b><span class="mdate">' + esc(GK.mailDate(m.run_date) + ', ' + GK.timeShort(m.run_date)) + '</span></div>' +
       '<div class="mto">Кому: ' + esc(d.readers[1].name) + ' <span class="mchev"></span></div></div></div>' +
       '<div class="msubj">' + nb(f.subject) + '</div>' +
       '<div class="ds stay" style="--i:0"><div class="doc-kicker">Коммерческое предложение</div>' +
       '<h3 class="doc-title">' + nb(title) + '</h3>' +
       '<p class="doc-sub">' + nb('Первая страница. Этапы, смета и условия идут дальше без изменений.') + '</p></div>' +
       '<div class="doc-body" id="docBody">' + DOC_CTA + body + '</div>' +
-      '<div class="doc-foot ds" style="--i:' + (f.sections.length + 1) + '">' + nb(contacts(d)) + '</div>';
+      '<div class="doc-foot ds" style="--i:' + (f.sections.length + 1) + '">' + nb(f.contacts) + '</div>';
   };
 
   /* час на правки: кольцо по минутам и список ходов */

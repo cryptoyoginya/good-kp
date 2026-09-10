@@ -11,3 +11,5 @@ def test_golden_valid(golden_path):
     assert any(m.file for m in r.chat)
     assert [s.kind for s in r.source].count("table") == 2 and r.source[0].kind == "h"
     assert all(f.title for f in r.flags) and len(r.flags) == 6
+    assert r.readers[1].feed[4].badge == "Отвалилась"
+    assert r.fixed_page.contacts.startswith("Пиксель Лаб")

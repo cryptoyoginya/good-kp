@@ -51,6 +51,16 @@ class FeedItem(Strict):
     step: Literal["pre", "1", "2", "3", "4", "5", "6"]
     text: str
     state: Literal["ok", "drop", "off"]
+    badge: Optional[str] = None   # короткая подпись в роде персоны, только при drop
+
+    @model_validator(mode="after")
+    def _badge_with_drop(self):
+        if self.state == "drop":
+            if not (self.badge or "").strip():
+                raise ValueError("badge обязателен при state drop")
+        elif self.badge is not None:
+            raise ValueError("badge только при state drop")
+        return self
 
 
 class Reader(Strict):
@@ -121,6 +131,7 @@ class Section(Strict):
 class FixedPage(Strict):
     subject: str
     from_initials: str = Field(max_length=3)
+    contacts: str                 # подвал письма: исполнитель, контакт, телефон, почта
     sections: list[Section] = Field(min_length=PILLARS, max_length=PILLARS)
 
 

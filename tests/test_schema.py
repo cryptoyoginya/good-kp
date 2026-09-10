@@ -29,7 +29,7 @@ def minimal() -> dict:
         "blocks": [block(i) for i in range(1, 7)],
         "flags": [{"from": "Сергей", "title": "з", "text": "т"}] * 4,
         "holds": [{"title": "з", "text": "т"}] * 2,
-        "fixed_page": {"subject": "т", "from_initials": "ПЛ",
+        "fixed_page": {"subject": "т", "from_initials": "ПЛ", "contacts": "к",
                        "sections": [{"title": "з", "text": "т"}] * 6},
         "plan": [{"title": "з", "text": "т", "minutes": 15}] * 4,
         "source": [{"id": "src-1", "kind": "p", "text": "абзац"}],
@@ -129,3 +129,25 @@ def test_chat_msg_empty_text_requires_file():
     d = minimal()
     d["chat"][0] = {"side": "me", "text": "", "file": {"name": "a.pdf", "size": "1 МБ"}}
     Report.model_validate(d)
+
+
+def test_badge_required_when_state_drop():
+    d = minimal()
+    d["readers"][0]["feed"][0] = {"step": "1", "text": "т", "state": "drop"}
+    with pytest.raises(ValidationError, match="badge обязателен при state drop"):
+        Report.model_validate(d)
+    d = minimal()
+    d["readers"][0]["feed"][0] = {"step": "1", "text": "т", "state": "drop", "badge": " "}
+    with pytest.raises(ValidationError, match="badge обязателен при state drop"):
+        Report.model_validate(d)
+    d = minimal()
+    d["readers"][0]["feed"][0] = {"step": "1", "text": "т", "state": "drop", "badge": "Закрыл файл"}
+    Report.model_validate(d)
+
+
+def test_badge_only_when_state_drop():
+    for state in ("ok", "off"):
+        d = minimal()
+        d["readers"][0]["feed"][0] = {"step": "1", "text": "т", "state": state, "badge": "Закрыл файл"}
+        with pytest.raises(ValidationError, match="badge только при state drop"):
+            Report.model_validate(d)

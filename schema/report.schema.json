@@ -200,6 +200,18 @@
      ],
      "title": "State",
      "type": "string"
+    },
+    "badge": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Badge"
     }
    },
    "required": [
@@ -222,6 +234,10 @@
      "title": "From Initials",
      "type": "string"
     },
+    "contacts": {
+     "title": "Contacts",
+     "type": "string"
+    },
     "sections": {
      "items": {
       "$ref": "#/$defs/Section"
@@ -235,6 +251,7 @@
    "required": [
     "subject",
     "from_initials",
+    "contacts",
     "sections"
    ],
    "title": "FixedPage",
