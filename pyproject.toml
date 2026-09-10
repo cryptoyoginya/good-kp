@@ -1,0 +1,22 @@
+[project]
+name = "goodkp"
+version = "0.1.0"
+description = "Разбор коммерческого предложения глазами клиента по методике Вадима Школьного"
+requires-python = ">=3.11"
+dependencies = ["pydantic>=2.7"]
+
+[project.scripts]
+goodkp = "goodkp.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8", "beautifulsoup4>=4.12", "lxml>=5", "playwright>=1.45", "pytest-playwright>=0.5"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["goodkp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

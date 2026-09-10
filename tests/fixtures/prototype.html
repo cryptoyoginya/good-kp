@@ -1,0 +1,1468 @@
+<title>Good КП: СтройМаркет</title>
+<style>
+:root{
+  --bg:#FBFBFD;--card:#FFFFFF;--card2:#F5F5F7;--line:#E5E5EA;--line2:#D2D2D7;
+  --ink:#1D1D1F;--ink2:#424245;--sub:#6E6E73;--faint:#86868B;
+  --accent:#0071E3;--accent-soft:#E8F1FC;
+  --good:#1D9A4F;--good-soft:#E6F6EC;--warn:#C97B00;--warn-soft:#FFF3DF;--crit:#D93025;--crit-soft:#FDE9E7;
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06);
+  --segtrack:#EEEEEF;--segthumb:#FFFFFF;
+  --r:20px;
+  --sf:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000;--card:#1C1C1E;--card2:#2C2C2E;--line:#2C2C2E;--line2:#3A3A3C;
+    --ink:#F5F5F7;--ink2:#D1D1D6;--sub:#A1A1A6;--faint:#8E8E93;
+    --accent:#2997FF;--accent-soft:#0F2A47;
+    --good:#30D158;--good-soft:#0F2E1A;--warn:#FFB340;--warn-soft:#332410;--crit:#FF6961;--crit-soft:#3A1614;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+    --segtrack:#2C2C2E;--segthumb:#636366;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000;--card:#1C1C1E;--card2:#2C2C2E;--line:#2C2C2E;--line2:#3A3A3C;
+  --ink:#F5F5F7;--ink2:#D1D1D6;--sub:#A1A1A6;--faint:#8E8E93;
+  --accent:#2997FF;--accent-soft:#0F2A47;
+  --good:#30D158;--good-soft:#0F2E1A;--warn:#FFB340;--warn-soft:#332410;--crit:#FF6961;--crit-soft:#3A1614;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  --segtrack:#2C2C2E;--segthumb:#636366;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sf);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+h1,h2,h3,h4{margin:0;text-wrap:balance;letter-spacing:-.022em}
+.wrap{max-width:1000px;margin:0 auto;padding:0 28px}
+.prose{max-width:66ch}
+.tn{font-variant-numeric:tabular-nums}
+.k{font-size:13px;font-weight:600;color:var(--sub);letter-spacing:-.005em}
+
+/* reveal */
+html.js .rv{opacity:0;transform:translateY(18px);transition:opacity .7s var(--ease),transform .7s var(--ease);transition-delay:calc(var(--i,0)*70ms)}
+html.js .rv.in{opacity:1;transform:none}
+html.js .pop{opacity:0;transform:scale(.86);transition:opacity .45s var(--ease),transform .45s var(--ease);transition-delay:calc(var(--i,0)*60ms)}
+html.js .pop.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){html.js .rv,html.js .pop{opacity:1;transform:none;transition:none}}
+
+/* header */
+.top{padding:28px 0 0}
+.top .wrap{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap}
+.brand{font-size:21px;font-weight:600;letter-spacing:-.02em}
+.brand span{color:var(--sub);font-weight:400;margin-left:8px}
+.meta{font-size:14px;color:var(--sub);line-height:1.45;text-align:right}
+.meta b{color:var(--ink2);font-weight:500}
+
+/* hero */
+.hero{padding:56px 0 24px}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr;gap:36px}}
+.hero h1{font-size:clamp(38px,5.4vw,58px);font-weight:600;line-height:1.05;max-width:14ch}
+.hero p{margin:20px 0 0;font-size:19px;line-height:1.45;color:var(--ink2);max-width:46ch}
+.replay{margin-top:24px;font:inherit;font-size:14px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:0;border-radius:999px;padding:9px 16px;cursor:pointer;transition:transform .2s var(--ease),filter .2s}
+.replay:hover{filter:brightness(.96)}
+.replay:active{transform:scale(.96)}
+
+/* iMessage-style chat */
+.chat{--blue:#0A84FF;--grey:#E9E9EB;--greyink:#1D1D1F;background:var(--card);border-radius:28px;box-shadow:var(--shadow);overflow:hidden;max-width:440px;width:100%;justify-self:end;display:flex;flex-direction:column}
+@media (max-width:900px){.chat{justify-self:stretch;max-width:none}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chat{--grey:#26252A;--greyink:#F5F5F7}}
+:root[data-theme="dark"] .chat{--grey:#26252A;--greyink:#F5F5F7}
+.chat-h{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--card)}
+.chat-avs{display:flex}
+.chat-avs span{width:32px;height:32px;border-radius:50%;background:linear-gradient(180deg,#A8A8AD,#8E8E93);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;border:2px solid var(--card)}
+.chat-avs span+span{margin-left:-10px}
+.chat-t{display:flex;flex-direction:column;line-height:1.2}
+.chat-t b{font-size:15px;font-weight:600}
+.chat-t span{font-size:12.5px;color:var(--sub)}
+.chat-b{height:560px;display:flex;flex-direction:column;justify-content:flex-end;padding:16px 14px 14px;overflow:hidden;position:relative}
+@media (max-width:640px){.chat-b{height:520px}}
+.msgs{display:flex;flex-direction:column;gap:3px}
+.m{display:flex;flex-direction:column;max-width:78%;opacity:0;transform:scale(.86) translateY(8px);transition:opacity .28s var(--ease),transform .38s cubic-bezier(.2,.9,.3,1.15)}
+.m.in{opacity:1;transform:none}
+.m.me{align-self:flex-end;align-items:flex-end;transform-origin:bottom right}
+.m.them{align-self:flex-start;align-items:flex-start;transform-origin:bottom left}
+.m .b{position:relative;padding:8px 13px;border-radius:18px;font-size:15.5px;line-height:1.35;letter-spacing:-.01em;word-wrap:break-word}
+.m.me .b{background:var(--blue);color:#fff;border-bottom-right-radius:5px}
+.m.them .b{background:var(--grey);color:var(--greyink);border-bottom-left-radius:5px}
+.m.them::before{content:attr(data-name);font-size:12px;color:var(--sub);margin:8px 0 2px 13px}
+.m.them.same::before{display:none}
+.m.them.same{margin-top:-1px}
+.m .st{font-size:11.5px;color:var(--sub);margin:3px 6px 0 0}
+.m .file{display:flex;align-items:center;gap:10px;background:var(--blue);color:#fff;padding:10px 14px 10px 10px;border-radius:18px;border-bottom-right-radius:5px}
+.m .file .ico{width:34px;height:40px;border-radius:6px;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;letter-spacing:.02em}
+.m .file b{display:block;font-size:14.5px;font-weight:600}
+.m .file i{display:block;font-style:normal;font-size:12px;opacity:.85}
+.typing{position:absolute;left:14px;bottom:14px;display:flex;gap:4px;align-items:center;background:var(--grey);padding:12px 14px;border-radius:18px;border-bottom-left-radius:5px;opacity:0;transform:scale(.86);transform-origin:bottom left;transition:opacity .2s var(--ease),transform .25s cubic-bezier(.2,.9,.3,1.15)}
+.typing.on{opacity:1;transform:none}
+.typing span{width:7px;height:7px;border-radius:50%;background:#8E8E93;animation:tdot 1.2s infinite ease-in-out}
+.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.55}30%{transform:translateY(-4px);opacity:1}}
+.msgs.pad{padding-bottom:46px}
+@media (prefers-reduced-motion:reduce){.m{transition:none}.typing span{animation:none}}
+
+/* sections */
+section{padding:56px 0 0}
+section>.wrap>h2{font-size:34px;font-weight:600;line-height:1.1;margin-bottom:22px}
+.lead{font-size:19px;color:var(--ink2);margin:-6px 0 24px;line-height:1.45}
+
+/* intake: grouped list */
+.intake{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:4px 26px}
+.intake>div{display:grid;grid-template-columns:200px 1fr;gap:20px;padding:15px 0;border-top:1px solid var(--line);align-items:baseline}
+.intake>div:first-child{border-top:0}
+.intake .k{font-size:15px;font-weight:500;color:var(--sub)}
+.intake .v{font-size:16.5px;color:var(--ink);line-height:1.45}
+@media (max-width:640px){.intake>div{grid-template-columns:1fr;gap:4px}}
+
+/* verdict: voice memo, like the Voice Memos app */
+.memo{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:20px 26px 22px}
+.memo-row{display:flex;align-items:flex-start;gap:14px}
+.memo-t b{display:block;font-size:17px;font-weight:600}
+.memo-t span{display:block;font-size:13.5px;color:var(--sub);margin-top:3px}
+.memo-dur{margin-left:auto;font-size:14px;color:var(--sub);font-variant-numeric:tabular-nums;align-self:flex-start;padding-top:2px}
+.wave-wrap{position:relative;margin:16px 0 6px;height:64px;background:var(--card2);border-radius:10px;overflow:hidden;cursor:pointer;touch-action:none}
+.wave{position:absolute;inset:0;display:flex;align-items:center;gap:2px;padding:0 10px}
+.wave i{flex:1;height:var(--h,20%);min-height:3px;border-radius:1.5px;background:var(--line2);transition:background .12s}
+.wave i.on{background:var(--ink)}
+.playhead{position:absolute;top:0;bottom:0;left:10px;width:2px;background:var(--accent);border-radius:1px;transform:translateX(0);transition:none}
+.memo.playing .wave i.on{animation:wv 1s ease-in-out infinite alternate;animation-delay:var(--dl,0s)}
+@keyframes wv{from{transform:scaleY(1)}to{transform:scaleY(.6)}}
+.memo-times{display:flex;justify-content:space-between;font-size:12.5px;color:var(--sub);font-variant-numeric:tabular-nums;padding:0 2px}
+.play{width:54px;height:54px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:none;transition:transform .15s}
+.play:active{transform:scale(.94)}
+.play .ic-pause{display:none}
+.memo.playing .play .ic-play{display:none}
+.memo.playing .play .ic-pause{display:block}
+.memo-ctl{display:flex;align-items:center;justify-content:center;gap:34px;margin:14px 0 4px}
+.skip{width:44px;height:44px;border:0;background:none;color:var(--ink);cursor:pointer;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;transition:transform .15s,background .2s}
+.skip:hover{background:var(--card2)}
+.skip:active{transform:scale(.92)}
+.memo-q{margin:18px 0 0;font-size:clamp(20px,2.3vw,26px);font-weight:500;line-height:1.35;letter-spacing:-.02em;max-width:46ch;color:var(--sub)}
+.memo-q span{transition:color .18s}
+.memo-q span.said{color:var(--ink)}
+.memo:not(.started) .memo-q span{color:var(--ink)}
+.vlist{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);margin-top:14px;padding:6px 26px}
+.vlist>div{padding:16px 0;border-top:1px solid var(--line)}
+.vlist>div:first-child{border-top:0}
+.vlist .k{display:block;margin-bottom:6px}
+.vlist p{margin:0;color:var(--ink2);font-size:16px}
+.vlist b{color:var(--ink);font-weight:600}
+@media (prefers-reduced-motion:reduce){.memo.playing .wave i.on{animation:none}.memo-q span{transition:none}}
+
+/* status words */
+.st{font-size:14px;font-weight:600;white-space:nowrap;letter-spacing:-.005em}
+.st.good{color:var(--good)}.st.warn{color:var(--warn)}.st.crit{color:var(--crit)}
+
+/* readers: segmented control + feed */
+.readers{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:22px 26px 26px}
+.segctl{position:relative;display:grid;grid-template-columns:repeat(3,1fr);background:var(--segtrack);border-radius:10px;padding:2px;margin-bottom:24px}
+.segctl .thumb{position:absolute;top:2px;bottom:2px;left:2px;width:calc((100% - 4px)/3);background:var(--segthumb);border-radius:8px;box-shadow:0 3px 8px rgba(0,0,0,.14),0 3px 1px rgba(0,0,0,.04);transition:transform .35s var(--ease)}
+.segctl button{position:relative;z-index:1;font:inherit;font-size:14.5px;font-weight:500;color:var(--ink2);background:none;border:0;padding:8px 6px;border-radius:8px;cursor:pointer;transition:color .2s}
+.segctl button[aria-selected="true"]{color:var(--ink);font-weight:600}
+.pane{display:grid;grid-template-columns:1fr 1.25fr;gap:32px}
+@media (max-width:820px){.pane{grid-template-columns:1fr;gap:22px}}
+.portrait{display:flex;flex-direction:column;gap:14px}
+.pc{display:flex;align-items:center;gap:14px}
+.pav{width:60px;height:60px;border-radius:50%;background:linear-gradient(180deg,#B4B4B9,#8E8E93);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.portrait h3{font-size:26px;font-weight:600;line-height:1.1;letter-spacing:-.02em}
+.portrait .who{color:var(--sub);font-size:15px;margin-top:3px}
+.ptiles{display:flex;flex-direction:column;gap:8px}
+.ptiles>div{background:var(--card2);border-radius:14px;padding:12px 14px}
+.ptiles .k{display:block;margin-bottom:3px}
+.ptiles p{margin:0;font-size:15px;color:var(--ink2);line-height:1.4}
+.pt-final p{color:var(--ink);font-weight:600}
+.feed{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.msg{display:grid;grid-template-columns:118px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--card2);opacity:0;transform:translateY(8px);transition:opacity .45s var(--ease),transform .45s var(--ease),background .3s;transition-delay:calc(var(--i,0)*110ms)}
+.msg.in{opacity:1;transform:none}
+.msg .step{font-size:13px;font-weight:600;color:var(--sub)}
+.msg p{margin:0;font-size:15px;color:var(--ink);line-height:1.4}
+.msg.pre .step{color:var(--faint)}
+.msg.drop{background:var(--card);box-shadow:var(--shadow)}
+.msg.off{opacity:0}
+.msg.off.in{opacity:.55}
+.msg.off p{color:var(--sub);font-weight:400}
+.msg .st{grid-column:3;font-size:13px}
+@media (max-width:560px){.msg{grid-template-columns:1fr;gap:6px}.msg .st{grid-column:1;justify-self:start}}
+@media (prefers-reduced-motion:reduce){.msg{transition:none}.segctl .thumb{transition:none}}
+
+/* blocks: expandable rows */
+.blocks{display:flex;flex-direction:column;gap:12px}
+.block{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.brow{display:grid;grid-template-columns:34px 1fr auto 18px;gap:16px;align-items:center;width:100%;text-align:left;font:inherit;color:var(--ink);background:none;border:0;padding:18px 24px;cursor:pointer;transition:background .2s}
+.block:not(.open) .brow:hover{background:var(--card2)}
+.block.open .brow{cursor:pointer}
+.brow .i{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#fff}
+.block.good .brow .i{background:var(--good)}.block.warn .brow .i{background:var(--warn)}.block.crit .brow .i{background:var(--crit)}
+.bt b{display:block;font-size:19px;font-weight:600;letter-spacing:-.015em;line-height:1.2}
+.bt span{display:block;font-size:14.5px;color:var(--sub);margin-top:2px}
+.brow .st{font-size:14.5px}
+.chev{width:9px;height:9px;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);transition:transform .3s var(--ease);justify-self:end;margin-top:-4px}
+.block.open .chev{transform:rotate(-135deg);margin-top:4px}
+.bbody{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s var(--ease)}
+.bbody>div{overflow:hidden}
+.block.open .bbody{grid-template-rows:1fr}
+.block .bx{display:grid;grid-template-columns:1fr 1fr;gap:24px 44px;padding:26px 24px 32px;margin:0 24px;border-top:1px solid var(--line)}
+.block .bx{padding-left:0;padding-right:0}
+@media (max-width:820px){.bx{grid-template-columns:1fr;padding:20px 0 24px;margin:0 18px}}
+.bl,.br{display:flex;flex-direction:column;gap:18px;min-width:0}
+.kpq{padding-left:14px;border-left:2px solid var(--line2)}
+.kq{display:block;font-size:12.5px;font-weight:600;color:var(--sub);margin-bottom:5px}
+.kpq p{margin:0;font-size:15.5px;color:var(--ink2);line-height:1.5}
+.kpq .findsrc{margin-top:8px}
+.bwhy{margin:0;font-size:15.5px;color:var(--ink2);line-height:1.55}
+.bdo{margin:0;font-size:15.5px;color:var(--ink2);line-height:1.55}
+.bdo b{color:var(--ink);font-weight:600}
+.ba{display:flex;flex-direction:column;gap:14px}
+.segctl.two{grid-template-columns:1fr 1fr;margin-bottom:0;width:240px;max-width:100%;align-self:flex-start;flex:none}
+.segctl.two .thumb{width:calc((100% - 4px)/2)}
+.ba-text p{margin:0;font-size:15.5px;line-height:1.55;color:var(--ink);animation:bafade .3s var(--ease)}
+.ba-text p.was{color:var(--sub)}
+@keyframes bafade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.ba-text p{animation:none}}
+.ph{background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:500;white-space:nowrap}
+
+/* flags: telegram notifications on a lock screen */
+.flags{display:grid;grid-template-columns:400px 1fr;gap:24px;align-items:start}
+@media (max-width:900px){.flags{grid-template-columns:1fr}}
+.phone-wrap{position:relative;z-index:2;max-width:400px;margin:0 auto;width:100%}
+.glow{position:absolute;top:-16%;bottom:-10%;left:-40%;right:-28%;opacity:0;pointer-events:none;z-index:-1;mix-blend-mode:screen;transform-origin:30% 22%;transform:scale(.85);transition:opacity .35s var(--ease),transform .6s cubic-bezier(.2,.9,.3,1.2)}
+.glow::before,.glow::after{content:"";position:absolute;inset:0;border-radius:50%}
+.glow::before{background:radial-gradient(38% 34% at 30% 22%,rgba(244,247,255,.95),rgba(244,247,255,.45) 35%,rgba(244,247,255,0) 70%);filter:blur(18px)}
+.glow::after{background:radial-gradient(60% 55% at 34% 30%,rgba(230,238,255,.5),rgba(230,238,255,.18) 45%,rgba(230,238,255,0) 80%);filter:blur(40px)}
+.holds{position:relative;z-index:1}
+.phone-wrap.lit .glow{opacity:1;transform:scale(1);animation:ignite .5s cubic-bezier(.2,.9,.3,1.2),breathe 4.2s ease-in-out .5s infinite alternate}
+@keyframes ignite{0%{opacity:0;transform:scale(.7)}55%{opacity:1;transform:scale(1.07)}100%{opacity:1;transform:scale(1)}}
+@keyframes breathe{from{opacity:1;transform:scale(1)}to{opacity:.86;transform:scale(1.025)}}
+@media (prefers-reduced-motion:reduce){.phone-wrap.lit .glow{animation:none}}
+.phone{position:relative;background:#121214;border-radius:56px;padding:12px;box-shadow:0 30px 80px rgba(0,0,0,.35),inset 0 0 0 2px #2a2a2e;width:100%;cursor:pointer;user-select:none;transition:box-shadow .5s var(--ease)}
+.phone-wrap.lit .phone{box-shadow:0 30px 80px rgba(0,0,0,.35),-10px -8px 40px 4px rgba(240,246,255,.16),inset 0 0 0 2px #3a3a3e}
+.screen{position:relative;border-radius:46px;overflow:hidden;height:720px;padding:12px 16px 0;color:#fff;background:
+  radial-gradient(90% 55% at 20% 0%,#2b4a6b 0%,transparent 60%),
+  radial-gradient(80% 60% at 90% 30%,#3c2f5a 0%,transparent 55%),
+  radial-gradient(70% 50% at 50% 100%,#123a3a 0%,transparent 60%),
+  linear-gradient(180deg,#0c0f16 0%,#0a0b10 100%)}
+.sbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:36px}
+.sb-l{font-size:15px;font-weight:600}
+.island{width:118px;height:34px;border-radius:20px;background:#000;justify-self:center}
+.sb-r{display:flex;justify-content:flex-end;align-items:center;gap:6px}
+.lock-lock{text-align:center;margin-top:26px;opacity:.9}
+.lock-date{text-align:center;font-size:20px;font-weight:500;margin-top:8px;letter-spacing:-.01em}
+.lock-time{text-align:center;font-size:84px;font-weight:300;letter-spacing:-.04em;line-height:1;margin:4px 0 26px;font-variant-numeric:tabular-nums}
+.narea{position:absolute;left:12px;right:12px;bottom:104px;height:120px}
+.ncard{position:absolute;left:0;right:0;bottom:0;background:rgba(255,255,255,.16);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:22px;padding:11px 14px 12px;opacity:0;transform:translateY(26px) scale(.96);transition:opacity .35s var(--ease),transform .55s cubic-bezier(.2,.9,.3,1.12);will-change:transform}
+.ncard.in{opacity:1}
+.narea.open{height:auto;max-height:none;overflow-y:auto;display:flex;flex-direction:column;gap:8px;scrollbar-width:none;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 22px)}
+.narea.open::-webkit-scrollbar{display:none}
+.narea.open .ncard{position:static;opacity:1!important;transform:none!important;flex:none}
+.nh{display:flex;align-items:center;gap:7px;margin-bottom:3px;font-size:12.5px}
+.napp{display:inline-flex;flex:none}
+.nname{font-weight:500;opacity:.85;letter-spacing:.01em}
+.ntime{margin-left:auto;opacity:.6}
+.ncard b{display:block;font-size:15px;font-weight:600;line-height:1.25}
+.ncard p{margin:1px 0 0;font-size:14.5px;line-height:1.35;opacity:.92}
+.ncard .nf{font-weight:500}
+.nhint{position:absolute;left:0;right:0;bottom:-26px;text-align:center;font-size:12.5px;opacity:.7}
+.narea.open .nhint{display:none}
+.lock-bottom{position:absolute;left:0;right:0;bottom:34px;display:flex;justify-content:space-between;padding:0 44px}
+.ctl{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.18);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:inline-flex;align-items:center;justify-content:center}
+.home{position:absolute;left:50%;bottom:10px;width:134px;height:5px;border-radius:3px;background:#fff;transform:translateX(-50%);opacity:.9}
+.holds{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:22px 26px 18px}
+.holds-h{font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+.holds ul{list-style:none;margin:0;padding:0}
+.holds li{display:grid;grid-template-columns:24px 1fr;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:15.5px;color:var(--ink2);line-height:1.45}
+.holds li:first-child{border-top:0}
+.holds li b{color:var(--ink);font-weight:600}
+.hc{width:22px;height:22px;border-radius:50%;background:var(--good);position:relative;margin-top:2px}
+.hc::after{content:"";position:absolute;left:7px;top:3.5px;width:5px;height:10px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg)}
+
+/* flashlight + camera */
+.ctl{border:0;color:#fff;cursor:pointer;padding:0;transition:background .25s,color .25s,transform .15s}
+.ctl:active{transform:scale(.92)}
+.ctl.on{background:#fff;color:#111}
+.camlayer{position:absolute;inset:0;background:#000;z-index:30;border-radius:46px;overflow:hidden}
+.camlayer video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}
+.cam-top{position:absolute;top:56px;left:0;right:0;text-align:center;font-size:15px;font-weight:600;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.cam-close{position:absolute;left:50%;bottom:40px;transform:translateX(-50%);font:inherit;font-size:15px;font-weight:600;color:#111;background:#fff;border:0;border-radius:999px;padding:11px 22px;cursor:pointer}
+.toast{position:absolute;left:24px;right:24px;bottom:110px;background:rgba(0,0,0,.72);color:#fff;font-size:14px;text-align:center;padding:12px 14px;border-radius:14px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:31}
+.toast[hidden]{display:none}
+
+/* plan: iOS timer */
+.hour{display:grid;grid-template-columns:340px 1fr;gap:32px;align-items:start}
+@media (max-width:900px){.hour{grid-template-columns:1fr}}
+.timer{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:26px 20px 24px}
+.ring{position:relative;width:300px;height:300px;margin:0 auto}
+.ring svg{display:block}
+.ring .seg{stroke:var(--faint);transition:stroke-dashoffset .9s var(--ease);transition-delay:var(--d,0ms)}
+.hour.in .ring .seg{stroke-dashoffset:0!important}
+.ring .prog{transition:stroke-dasharray .9s linear}
+.ring-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 46px}
+.tleft{font-size:60px;font-weight:200;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.tlabel{margin-top:8px;font-size:14px;color:var(--sub);line-height:1.3}
+.tctl{display:flex;justify-content:space-between;padding:18px 18px 0}
+.tbtn{width:78px;height:78px;border-radius:50%;border:0;font:inherit;font-size:15px;font-weight:500;cursor:pointer;position:relative;transition:transform .15s,filter .2s}
+.tbtn::after{content:"";position:absolute;inset:3px;border-radius:50%;border:2px solid var(--card)}
+.tbtn:active{transform:scale(.94)}
+.tbtn.cancel{background:#2C2C2E;color:#fff}
+.tbtn.start{background:#1F7A3E;color:#7BE29A}
+.tbtn.pause{background:#7A4B0F;color:#FFC56E}
+.plan{list-style:none;margin:0;padding:0;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.plan li{display:grid;grid-template-columns:44px 1fr auto;gap:16px;align-items:start;padding:20px 26px;border-bottom:1px solid var(--line);transition:background .3s}
+.plan li:last-child{border-bottom:0}
+.plan .pn{width:30px;height:30px;border-radius:50%;background:var(--card2);color:var(--ink);font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;position:relative;transition:background .3s,color .3s}
+.plan .pn::after{content:"";position:absolute;left:10px;top:6px;width:6px;height:12px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg) scale(0);transition:transform .25s cubic-bezier(.2,.9,.3,1.3)}
+.plan li.done .pn{background:var(--good)}
+.plan li.done .pn i{opacity:0}
+.plan li.done .pn::after{transform:rotate(45deg) scale(1)}
+.plan li.done .t{color:var(--sub)}
+.plan li.cur{background:var(--card2)}
+.plan li.cur .pn{background:#FF9F0A;color:#fff}
+.plan .t{color:var(--ink);font-weight:600;font-size:16.5px;transition:color .3s}
+.plan .t span{display:block;color:var(--sub);font-size:15px;margin-top:3px;font-weight:400}
+.plan .m{font-size:14px;color:var(--sub);white-space:nowrap;padding-top:3px;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){.ring .seg,.ring .prog{transition:none}}
+
+/* method: scroll story */
+.mintro{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:26px 30px;margin-bottom:28px}
+.mintro p{margin:0 0 18px;color:var(--ink2);font-size:17px;max-width:66ch;line-height:1.5}
+.msig{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--line)}
+.msig b{display:block;font-size:18px;font-weight:600;letter-spacing:-.015em}
+.msig>div>span{font-size:14px;color:var(--sub)}
+.tgl span{color:inherit}
+.tgl{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--ink);padding:6px 12px 6px 6px;border-radius:999px;background:var(--card2);transition:filter .2s;white-space:nowrap}
+.tgl:hover{text-decoration:none;filter:brightness(.97)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tgl{color:#fff}}
+:root[data-theme="dark"] .tgl{color:#fff}
+.tgl svg{flex:none}
+.mgrid{display:grid;grid-template-columns:.9fr 1.3fr;gap:56px;align-items:start}
+.msticky{position:sticky;top:96px}
+.mnum{font-size:clamp(120px,15vw,190px);font-weight:200;line-height:.85;letter-spacing:-.06em;color:var(--ink);font-variant-numeric:tabular-nums;transition:opacity .35s var(--ease),transform .45s var(--ease)}
+.mtitle{font-size:34px;font-weight:600;letter-spacing:-.025em;line-height:1.05;margin-top:18px;transition:opacity .35s var(--ease),transform .45s var(--ease)}
+.msub{font-size:17px;color:var(--sub);margin-top:8px;transition:opacity .35s var(--ease)}
+.msticky.swap .mnum,.msticky.swap .mtitle,.msticky.swap .msub{opacity:0;transform:translateY(12px)}
+.mdots{display:flex;gap:6px;margin-top:26px}
+.mdots i{width:26px;height:4px;border-radius:2px;background:var(--line2);transition:background .3s,width .3s}
+.mdots i.on{background:var(--ink);width:40px}
+.msteps{display:flex;flex-direction:column}
+.mstep{padding:12px 0 44px;border-top:1px solid var(--line)}
+.mstep:first-child{border-top:0;padding-top:0}
+.mstep-h{display:none;margin:18px 0 14px}
+.mstep-h .n{font-size:13px;font-weight:600;color:var(--sub)}
+.mstep-h h4{font-size:26px;font-weight:600;letter-spacing:-.02em;margin:2px 0 4px}
+.mstep-h .sub{font-size:15px;color:var(--sub)}
+.mp{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:20px 22px 18px;margin-top:14px}
+.mp b{display:block;font-size:18px;font-weight:600;letter-spacing:-.015em;margin-bottom:6px}
+.mp p{margin:0 0 14px;font-size:15.5px;color:var(--ink2);line-height:1.5}
+@media (max-width:860px){
+  .mgrid{grid-template-columns:1fr;gap:0}
+  .msticky{display:none}
+  .mstep-h{display:block}
+  .mstep{padding-top:6px}
+}
+@media (prefers-reduced-motion:reduce){.mnum,.mtitle,.msub{transition:none}}
+
+/* source */
+details{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow)}
+summary{cursor:pointer;padding:18px 24px;font-size:16px;font-weight:500;color:var(--ink);list-style:none;display:flex;align-items:center;gap:12px;user-select:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"";width:9px;height:9px;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(-45deg);transition:transform .25s var(--ease);flex:none;margin-left:4px}
+details[open] summary::before{transform:rotate(45deg)}
+.kp{padding:4px 28px 28px;border-top:1px solid var(--line);font-size:15px;color:var(--ink2);max-width:76ch}
+.kp h3{font-size:16px;font-weight:600;color:var(--ink);margin:22px 0 8px}
+.kp .h0{font-size:19px;margin-top:20px}
+.kp p{margin:0 0 10px}
+.kp ul{margin:0 0 10px;padding-left:20px}
+.kp li{margin:3px 0}
+.kp table{min-width:0;font-size:14.5px;margin:8px 0 12px;background:var(--card2);border-radius:12px;overflow:hidden}
+.kp th,.kp td{padding:9px 14px;border-color:var(--line2)}
+.kp .fine{font-size:13.5px;color:var(--sub)}
+
+/* pill nav */
+.pillnav{position:sticky;top:12px;z-index:50;display:flex;gap:2px;justify-content:center;margin:14px auto 0;padding:4px;width:max-content;max-width:calc(100% - 32px);border-radius:999px;background:color-mix(in srgb,var(--card) 72%,transparent);backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px);box-shadow:0 1px 0 rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.08);overflow-x:auto;scrollbar-width:none;opacity:0;transform:translateY(-8px);transition:opacity .35s var(--ease),transform .35s var(--ease)}
+.pillnav::-webkit-scrollbar{display:none}
+.pillnav.show{opacity:1;transform:none}
+.pillnav a{font-size:13.5px;font-weight:500;color:var(--sub);padding:7px 13px;border-radius:999px;white-space:nowrap;transition:background .2s,color .2s}
+.pillnav a:hover{text-decoration:none;color:var(--ink)}
+.pillnav a.on{background:var(--ink);color:var(--bg)}
+@media (max-width:640px){.pillnav{justify-content:flex-start}}
+
+/* chat timer */
+.chat-timer{margin-left:auto;text-align:right;line-height:1.15}
+.chat-timer span{display:block;font-size:11px;color:var(--sub)}
+.chat-timer b{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.chat-timer.stop b{color:var(--crit)}
+
+/* find in source */
+.findsrc{display:inline-block;margin-top:8px;font-size:13.5px;font-weight:500;color:var(--accent)}
+.flash{animation:flash 1.6s var(--ease)}
+@keyframes flash{0%{background:var(--accent-soft);box-shadow:0 0 0 6px var(--accent-soft)}100%{background:transparent;box-shadow:0 0 0 0 transparent}}
+
+/* assembled page */
+.doc{max-width:none}
+.doc-p{background:var(--card);border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 24px 60px rgba(0,0,0,.12);padding:26px 40px 36px;font-size:15.5px;line-height:1.55;position:relative}
+@media (max-width:720px){.doc-p{padding:20px 20px 24px}.mail-bar{margin:0 -20px 16px;padding:0 16px 10px}}
+.mail-bar{display:flex;justify-content:space-between;align-items:center;margin:0 -40px 18px;padding:0 24px 12px;border-bottom:1px solid var(--line);font-size:16px}
+.mail-back{color:var(--accent);display:inline-flex;align-items:center;gap:6px}
+.mail-back::before{content:"";width:9px;height:9px;border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(45deg);margin-left:2px}
+.mail-cnt{font-size:14px;color:var(--sub)}
+.doc-head{display:flex;align-items:center;gap:12px;padding-bottom:12px}
+.mav{width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,#5AA9FF,#0071E3);color:#fff;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;flex:none;letter-spacing:.01em}
+.mhd{flex:1;min-width:0}
+.mrow{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.mfrom{font-size:16.5px;font-weight:600}
+.mdate{font-size:13.5px;color:var(--sub);white-space:nowrap}
+.mto{font-size:14.5px;color:var(--sub);margin-top:2px;display:inline-flex;align-items:center;gap:6px}
+.mchev{width:7px;height:7px;border-right:1.5px solid var(--sub);border-bottom:1.5px solid var(--sub);transform:rotate(-45deg);margin-top:1px}
+.msubj{font-size:20px;font-weight:600;letter-spacing:-.02em;padding:6px 0 16px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+.doc-kicker{font-size:13px;font-weight:600;color:var(--sub);margin-bottom:8px}
+.doc-title{font-size:28px;font-weight:600;line-height:1.1;margin-bottom:6px}
+.doc-sub{margin:0 0 4px;color:var(--sub);font-size:14.5px}
+.doc-p h4{font-size:17px;font-weight:600;margin:24px 0 6px}
+.doc-p p{margin:0;color:var(--ink2)}
+.doc-foot{margin-top:28px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--sub)}
+.ds{opacity:0;transform:translateY(10px);filter:blur(0);transition:opacity .55s var(--ease),transform .55s var(--ease),filter .55s var(--ease);transition-delay:calc(var(--i,0)*150ms)}
+.ds.stay{opacity:1;transform:none}
+.doc-body{position:relative;max-height:300px;overflow:hidden;transition:max-height 1.1s var(--ease)}
+.doc:not(.open) .doc-body{cursor:pointer}
+.doc-body::after{content:"";position:absolute;left:0;right:0;bottom:0;height:160px;background:linear-gradient(to bottom,transparent,var(--card));pointer-events:none;transition:opacity .6s var(--ease)}
+.doc:not(.open) .doc-body .ds{opacity:.5;transform:none;filter:blur(2.5px);transition-delay:0s}
+.doc.open .doc-body{max-height:3000px}
+.doc.open .doc-body::after{opacity:0}
+.doc.open .ds{opacity:1;transform:none;filter:blur(0)}
+.doc-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:0 4px}
+.doc-actions:has(.dl-group:not([hidden])){margin-top:18px}
+.doc-cta{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;transition:opacity .35s var(--ease)}
+.doc.open .doc-cta{opacity:0;pointer-events:none}
+.doc-cta-card{background:color-mix(in srgb,var(--card) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:20px;box-shadow:var(--shadow);padding:22px 26px 22px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.doc-cta-card b{font-size:19px;font-weight:600;letter-spacing:-.015em;margin-top:4px}
+.doc-cta-card p{margin:0 0 8px;font-size:14.5px;color:var(--sub);line-height:1.45}
+.assemble{display:inline-flex;align-items:center;gap:9px;font:inherit;font-size:15.5px;font-weight:600;color:#fff;background:var(--accent);border:0;border-radius:999px;padding:12px 20px 12px 22px;cursor:pointer;box-shadow:0 6px 18px rgba(0,113,227,.25);transition:transform .2s var(--ease),filter .2s}
+.assemble svg{transition:transform .25s var(--ease)}
+.assemble:hover svg{transform:translateY(2px)}
+.assemble:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.assemble:active{transform:scale(.97)}
+.dl-group{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.dl{display:inline-flex;align-items:center;gap:9px;font:inherit;font-size:15px;font-weight:600;color:var(--ink);background:var(--card);border:0;border-radius:999px;padding:9px 18px 9px 10px;cursor:pointer;box-shadow:var(--shadow);transition:transform .2s var(--ease)}
+.dl .fic{flex:none}
+.dl:hover{transform:translateY(-1px)}
+.dl-note{font-size:12.5px;color:var(--faint)}
+@media (prefers-reduced-motion:reduce){.ds,.doc-body,.doc-body::after{transition:none}}
+@media print{body.print-doc>*{display:none!important}body.print-doc #print-host{display:block!important}#print-host{display:none}}
+
+/* table of contents as a note */
+.tocsec{padding-top:36px}
+.note{--paper:#FFFDF6;--yellow:#E6A800;background:var(--paper);border-radius:var(--r);box-shadow:var(--shadow);padding:0 0 12px;overflow:hidden}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .note{--paper:#1C1C1E;--yellow:#FFD60A}}
+:root[data-theme="dark"] .note{--paper:#1C1C1E;--yellow:#FFD60A}
+.note-bar{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;font-size:16px;color:var(--yellow);border-bottom:1px solid var(--line)}
+.note-bar .back{display:inline-flex;align-items:center;gap:4px;font-weight:400}
+.note-bar .back::before{content:"";width:9px;height:9px;border-left:2px solid var(--yellow);border-bottom:2px solid var(--yellow);transform:rotate(45deg);margin-right:4px;margin-left:2px}
+.note-bar .ok{font-weight:600}
+.note-date{text-align:center;font-size:12.5px;color:var(--sub);padding:14px 0 4px}
+.note-title{font-size:28px;font-weight:700;letter-spacing:-.025em;padding:0 32px;margin:6px 0 10px}
+.note-list{list-style:none;margin:0;padding:0 32px;display:grid;grid-template-columns:1fr 1fr;column-gap:40px}
+@media (max-width:720px){.note-list{grid-template-columns:1fr}.note-title,.note-list{padding-left:20px;padding-right:20px}}
+.note-list a{display:grid;grid-template-columns:24px 1fr;gap:12px;align-items:start;padding:9px 0;color:var(--ink);text-decoration:none}
+.note-list a:hover{text-decoration:none}
+.note-list a:hover .tx b{color:var(--yellow)}
+.cb{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line2);margin-top:3px;position:relative;box-sizing:border-box;transition:background .3s var(--ease),border-color .3s var(--ease),transform .3s cubic-bezier(.2,.9,.3,1.3)}
+.cb::after{content:"";position:absolute;left:7px;top:3.5px;width:5px;height:10px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg) scale(0);transition:transform .25s cubic-bezier(.2,.9,.3,1.3)}
+.note-list li.done .cb{background:var(--yellow);border-color:var(--yellow);transform:scale(1.06)}
+.note-list li.done .cb::after{transform:rotate(45deg) scale(1)}
+.tx b{display:block;font-size:17.5px;font-weight:600;line-height:1.3;transition:color .2s}
+.tx span{display:block;font-size:14.5px;color:var(--sub);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.note-list li.done .tx b{color:var(--sub)}
+@media (prefers-reduced-motion:reduce){.cb,.cb::after{transition:none}}
+
+footer{margin-top:88px;padding:56px 0 64px;border-top:1px solid var(--line)}
+.sig{display:flex;flex-direction:column;align-items:center;text-align:center}
+.sig-h{display:inline-flex;align-items:center;gap:10px;font-size:clamp(28px,4vw,40px);font-weight:600;letter-spacing:-.03em;line-height:1.1;color:var(--ink)}
+.sig-h .heart{color:#FF375F;position:relative;top:1px;transform-origin:center;animation:beat .9s cubic-bezier(.2,.7,.3,1) 1 both;animation-delay:.6s;animation-play-state:paused}
+.sig.in .heart{animation-play-state:running}
+@keyframes beat{0%,100%{transform:scale(1)}30%{transform:scale(1.28)}60%{transform:scale(1)}80%{transform:scale(1.14)}}
+.sig-s{margin-top:12px;font-size:19px;color:var(--sub);letter-spacing:-.01em}
+.sig-btn{margin-top:30px;display:inline-block;font-size:17px;font-weight:500;color:#fff;background:var(--accent);padding:13px 26px;border-radius:999px;text-decoration:none;transition:filter .2s,transform .2s var(--ease)}
+.sig-btn:hover{text-decoration:none;filter:brightness(1.08)}
+.sig-btn:active{transform:scale(.98)}
+.sig-handle{margin-top:12px;font-size:14px;color:var(--faint)}
+footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:center}
+@media (prefers-reduced-motion:reduce){.sig-h .heart{animation:none}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>document.documentElement.classList.add('js')</script>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">Good КП</div>
+    <div class="meta"><b>КП №0417 от&nbsp;21.08.2026</b><br>«Пиксель Лаб» для&nbsp;ООО «СтройМаркет»<br>Прогон 07.09.2026 по&nbsp;методике Вадима Школьного</div>
+  </div>
+</header>
+
+<nav class="pillnav" id="nav" aria-label="Разделы">
+  <a href="#s-verdict">Вердикт</a><a href="#s-readers">Кто&nbsp;читал</a><a href="#s-blocks">Прогон</a><a href="#s-fixed">Страница</a><a href="#s-plan">За&nbsp;час</a><a href="#s-method">Методика</a>
+</nav>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="hero-t">
+      <h1>До&nbsp;стола директора это&nbsp;КП не&nbsp;дойдет</h1>
+      <p>Три из&nbsp;шести опор провалены, две шатаются, одна держит. Тому, кто&nbsp;продвигает проект внутри клиента, нечем его&nbsp;защитить, а&nbsp;тому, кто&nbsp;платит, не&nbsp;за&nbsp;что&nbsp;зацепиться на&nbsp;первых двух страницах.</p>
+      <button class="replay" type="button" id="replay">Проиграть еще&nbsp;раз</button>
+    </div>
+
+    <div class="chat" id="chat" aria-label="Как обсуждали это КП внутри клиента">
+      <div class="chat-h">
+        <div class="chat-avs"><span>С</span><span>Д</span></div>
+        <div class="chat-t"><b>Сайт, КП от&nbsp;Пиксель Лаб</b><span>Сергей, Дмитрий</span></div>
+        <div class="chat-timer" id="timer"><span>Сергей читает файл</span><b>0:00</b></div>
+      </div>
+      <div class="chat-b">
+        <div class="msgs">
+          <div class="m me" data-wait="300"><div class="file"><span class="ico">PDF</span><span><b>КП №0417.pdf</b><i>2,4&nbsp;МБ</i></span></div></div>
+          <div class="m me" data-wait="500"><div class="b">Пришло КП от&nbsp;Пиксель Лаб. Посмотрите, пожалуйста</div></div>
+          <div class="m them" data-name="Сергей" data-type="1400" data-wait="1600" data-timer="start"><div class="b">Открыл. Две страницы про&nbsp;них. Где&nbsp;мы?</div></div>
+          <div class="m them" data-name="Сергей" data-type="1200" data-wait="600"><div class="b">2,4&nbsp;млн и&nbsp;еще&nbsp;3&nbsp;500 в&nbsp;час сверху. За&nbsp;что?</div></div>
+          <div class="m me" data-wait="1300"><div class="b">Там&nbsp;понятные этапы, 16&nbsp;недель. И&nbsp;интеграция с&nbsp;1С есть</div></div>
+          <div class="m them" data-name="Дмитрий" data-type="1500" data-wait="900"><div class="b">1С вижу, ок. А&nbsp;чат-бот и&nbsp;калькулятор кто&nbsp;вести будет? Это&nbsp;на&nbsp;меня ляжет</div></div>
+          <div class="m them" data-name="Сергей" data-type="1600" data-wait="700" data-timer="stop"><div class="b">Дошел до&nbsp;третьей страницы и&nbsp;закрыл. «Вам нужен современный сайт». Спасибо, я&nbsp;в&nbsp;курсе</div></div>
+          <div class="m them" data-name="Сергей" data-type="900" data-wait="500"><div class="b">Что&nbsp;это&nbsp;нам даст? Цифру назови</div></div>
+          <div class="m me" data-wait="3200"><div class="b">Там&nbsp;нет цифр</div><div class="st">Прочитано</div></div>
+          <div class="m them" data-name="Сергей" data-type="1300" data-wait="900"><div class="b">Тогда мне нечего смотреть. Есть еще&nbsp;два КП, там&nbsp;хотя&nbsp;бы&nbsp;понятно, за&nbsp;что</div></div>
+          <div class="m me" data-wait="1600"><div class="b">Поняла. Не&nbsp;несу</div><div class="st">Доставлено</div></div>
+        </div>
+        <div class="typing" id="typing" hidden><span></span><span></span><span></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+
+<section id="s-toc" class="tocsec">
+  <div class="wrap">
+    <div class="note rv">
+      <div class="note-bar"><span class="back">Заметки</span><span class="ok">Готово</span></div>
+      <div class="note-date" id="noteDate">7 сентября 2026, 14:24&nbsp;МСК</div>
+      <h2 class="note-title">Что&nbsp;внутри</h2>
+      <ul class="note-list">
+        <li data-sec="s-intake"><a href="#s-intake"><span class="cb"></span><span class="tx"><b>Вводные</b><span>что&nbsp;знали о&nbsp;сделке до&nbsp;прогона</span></span></a></li>
+        <li data-sec="s-verdict"><a href="#s-verdict"><span class="cb"></span><span class="tx"><b>Вердикт</b><span>что&nbsp;клиент сказал&nbsp;бы&nbsp;вслух</span></span></a></li>
+        <li data-sec="s-readers"><a href="#s-readers"><span class="cb"></span><span class="tx"><b>Кто&nbsp;читал</b><span>трое внутри клиента и&nbsp;что&nbsp;подумал каждый</span></span></a></li>
+        <li data-sec="s-blocks"><a href="#s-blocks"><span class="cb"></span><span class="tx"><b>Прогон по&nbsp;опорам</b><span>что&nbsp;не&nbsp;так, что&nbsp;подумали, как&nbsp;переписать</span></span></a></li>
+        <li data-sec="s-flags"><a href="#s-flags"><span class="cb"></span><span class="tx"><b>Флаги и&nbsp;опоры</b><span>что&nbsp;мешает и&nbsp;что&nbsp;уже&nbsp;держит</span></span></a></li>
+        <li data-sec="s-fixed"><a href="#s-fixed"><span class="cb"></span><span class="tx"><b>Исправленная страница</b><span>собрать первую страницу и&nbsp;скачать</span></span></a></li>
+        <li data-sec="s-plan"><a href="#s-plan"><span class="cb"></span><span class="tx"><b>Что&nbsp;сделать за&nbsp;час</b><span>пять ходов по&nbsp;убыванию эффекта</span></span></a></li>
+        <li data-sec="s-method"><a href="#s-method"><span class="cb"></span><span class="tx"><b>Методика</b><span>на&nbsp;чем построен разбор</span></span></a></li>
+        <li data-sec="s-source"><a href="#s-source"><span class="cb"></span><span class="tx"><b>Исходное КП</b><span>то, что&nbsp;прогонялось</span></span></a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="s-intake">
+  <div class="wrap">
+    <h2 class="rv">Вводные</h2>
+    <div class="intake rv">
+      <div><span class="k">Клиент</span><span class="v">Региональная сеть строительных гипермаркетов, 5&nbsp;магазинов, Урал</span></div>
+      <div><span class="k">Проект</span><span class="v">Новый сайт с&nbsp;каталогом и&nbsp;онлайн-заказом, интеграция с&nbsp;1С</span></div>
+      <div><span class="k">Кто получит КП</span><span class="v">Директор по&nbsp;маркетингу. Дальше понесет гендиру</span></div>
+      <div><span class="k">Стадия</span><span class="v">После первого брифинга, до&nbsp;презентации</span></div>
+      <div><span class="k">Цель у&nbsp;клиента</span><span class="v">Размытая: «конкуренты уже продают онлайн, нам тоже нужен современный сайт»</span></div>
+      <div><span class="k">Бюджет</span><span class="v">Клиент не&nbsp;назвал</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="s-verdict">
+  <div class="wrap">
+    <h2 class="rv">Вердикт</h2>
+    <div class="memo rv" id="memo">
+      <div class="memo-row">
+        <div class="memo-t"><b>Сергей, гендир «СтройМаркета»</b><span id="memoDate">7 сентября 2026, 14:24</span></div>
+        <span class="memo-dur">0:14</span>
+      </div>
+      <div class="wave-wrap">
+        <div class="wave" id="wave" aria-hidden="true"></div>
+        <div class="playhead" id="playhead"></div>
+      </div>
+      <div class="memo-times"><span id="memoTime">0:00</span><span id="memoLeft">-0:14</span></div>
+      <div class="memo-ctl"><button type="button" class="skip" id="memoBack" aria-label="Назад на 5 секунд"><svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16.25 5.64A8.5 8.5 0 1 1 7.75 5.64"/><path d="M4.55 5.64L7.75 5.64L6.15 8.41"/></g><text x="12" y="16.3" text-anchor="middle" font-size="8.6" font-weight="600" fill="currentColor" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif">5</text></svg></button><button class="play" type="button" id="memoPlay" aria-label="Проиграть"><svg class="ic-play" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg><svg class="ic-pause" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg></button><button type="button" class="skip" id="memoFwd" aria-label="Вперед на 5 секунд"><svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><g transform="translate(24 0) scale(-1 1)" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16.25 5.64A8.5 8.5 0 1 1 7.75 5.64"/><path d="M4.55 5.64L7.75 5.64L6.15 8.41"/></g><text x="12" y="16.3" text-anchor="middle" font-size="8.6" font-weight="600" fill="currentColor" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif">5</text></svg></button></div>
+      <p class="memo-q" id="memoQ"><span>«Две</span> <span>страницы</span> <span>про</span> <span>вас,</span> <span>потом</span> <span>список</span> <span>всего,</span> <span>что</span> <span>вы</span> <span>умеете,</span> <span>потом</span> <span>цена.</span> <span>Где</span> <span>я?</span> <span>Где</span> <span>мой</span> <span>магазин,</span> <span>мои</span> <span>заказы,</span> <span>мои</span> <span>деньги?</span> <span>Я</span> <span>это</span> <span>уже</span> <span>видел</span> <span>три</span> <span>раза</span> <span>за</span> <span>месяц,</span> <span>и</span> <span>там</span> <span>было</span> <span>дешевле.»</span></p>
+    </div>
+  </div>
+</section>
+
+<section id="s-readers">
+  <div class="wrap">
+    <h2 class="rv">Кто&nbsp;читал</h2>
+    <p class="lead prose rv">Решение по&nbsp;подрядчику принимает группа людей с&nbsp;разными интересами. Прогон читает КП тремя парами глаз: кто&nbsp;платит, кто&nbsp;продвигает, кто&nbsp;будет с&nbsp;этим жить после запуска.</p>
+
+    <div class="readers rv" id="readers">
+      <div class="segctl" role="tablist" aria-label="Читатель">
+        <span class="thumb" aria-hidden="true"></span>
+        <button role="tab" type="button" aria-selected="true" data-i="0">Сергей</button>
+        <button role="tab" type="button" aria-selected="false" data-i="1">Ольга</button>
+        <button role="tab" type="button" aria-selected="false" data-i="2">Дмитрий</button>
+      </div>
+
+      <div class="pane" data-i="0" role="tabpanel">
+        <div class="portrait">
+          <div class="pc"><span class="pav" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><circle cx="12" cy="8.5" r="4.2" fill="#fff"/><path d="M4 20.5c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5v.5H4z" fill="#fff"/></svg></span><div><h3>Сергей</h3><div class="who">Гендир «СтройМаркета», платит</div></div></div>
+          <div class="ptiles">
+            <div><span class="k">Важно</span><p>Когда окупится. И&nbsp;что&nbsp;будет, если через четыре месяца ничего не&nbsp;будет.</p></div>
+            <div><span class="k">Как&nbsp;читает</span><p>Сначала ищет цену. Находит 2,4&nbsp;млн и&nbsp;3&nbsp;500 в&nbsp;час, идет назад искать, за&nbsp;что.</p></div>
+            <div class="pt-final"><span class="k">Итог</span><p>Закрыл файл на&nbsp;третьей странице.</p></div>
+          </div>
+        </div>
+        <ol class="feed">
+          <li class="msg pre" style="--i:0"><span class="step">Сначала цена</span><p>«2,4&nbsp;миллиона и&nbsp;еще&nbsp;3&nbsp;500 в&nbsp;час сверху? За&nbsp;что?»</p></li>
+          <li class="msg drop" style="--i:1"><span class="step">1. Проблема</span><p>«Это&nbsp;я&nbsp;и&nbsp;без&nbsp;вас знаю. Я&nbsp;вам за&nbsp;что&nbsp;плачу?»</p><span class="st crit">Закрыл файл</span></li>
+          <li class="msg off" style="--i:2"><span class="step">2. Цели</span><p>Не&nbsp;дошел</p></li>
+          <li class="msg off" style="--i:3"><span class="step">3. Решение</span><p>Не&nbsp;дошел</p></li>
+          <li class="msg off" style="--i:4"><span class="step">4. Как&nbsp;сделаем</span><p>Не&nbsp;дошел</p></li>
+          <li class="msg off" style="--i:5"><span class="step">5. Почему мы</span><p>Не&nbsp;дошел</p></li>
+          <li class="msg off" style="--i:6"><span class="step">6. Почему точно</span><p>Не&nbsp;дошел</p></li>
+        </ol>
+      </div>
+
+      <div class="pane" data-i="1" role="tabpanel" hidden>
+        <div class="portrait">
+          <div class="pc"><span class="pav" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><circle cx="12" cy="8.5" r="4.2" fill="#fff"/><path d="M4 20.5c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5v.5H4z" fill="#fff"/></svg></span><div><h3>Ольга</h3><div class="who">Директор по&nbsp;маркетингу, продвигает проект</div></div></div>
+          <div class="ptiles">
+            <div><span class="k">Важно</span><p>Защитить бюджет перед Сергеем и&nbsp;не&nbsp;подставиться. Ей нужен союзник, поставщиков у&nbsp;нее уже&nbsp;три.</p></div>
+            <div><span class="k">Как&nbsp;читает</span><p>С&nbsp;карандашом. Ищет аргументы, которые повторит на&nbsp;планерке.</p></div>
+            <div class="pt-final"><span class="k">Итог</span><p>Дочитала. Наверх не&nbsp;понесла.</p></div>
+          </div>
+        </div>
+        <ol class="feed">
+          <li class="msg" style="--i:0"><span class="step">1. Проблема</span><p>Нечего пересказать наверху. «Нужен современный сайт» Сергей уже&nbsp;слышал от&nbsp;нее самой.</p></li>
+          <li class="msg" style="--i:1"><span class="step">2. Цели</span><p>«Без&nbsp;цели я&nbsp;не&nbsp;защищу ни&nbsp;бюджет, ни&nbsp;себя, если сайт не&nbsp;взлетит.»</p></li>
+          <li class="msg" style="--i:2"><span class="step">3. Решение</span><p>«Половина списка лишняя. Но&nbsp;какая половина?»</p></li>
+          <li class="msg" style="--i:3"><span class="step">4. Как&nbsp;сделаем</span><p>«Этапы хорошие, это&nbsp;я&nbsp;покажу. А&nbsp;что&nbsp;нужно от&nbsp;нас?»</p></li>
+          <li class="msg drop" style="--i:4"><span class="step">5. Почему мы</span><p>«Чем&nbsp;вы&nbsp;отличаетесь от&nbsp;двух других КП у&nbsp;меня на&nbsp;столе?»</p><span class="st crit">Отвалилась</span></li>
+          <li class="msg off" style="--i:5"><span class="step">6. Почему точно</span><p>Дочитала по&nbsp;инерции. Аргументов для&nbsp;Сергея не&nbsp;нашла.</p></li>
+        </ol>
+      </div>
+
+      <div class="pane" data-i="2" role="tabpanel" hidden>
+        <div class="portrait">
+          <div class="pc"><span class="pav" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><circle cx="12" cy="8.5" r="4.2" fill="#fff"/><path d="M4 20.5c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5v.5H4z" fill="#fff"/></svg></span><div><h3>Дмитрий</h3><div class="who">Руководитель IT, отвечает за&nbsp;1С</div></div></div>
+          <div class="ptiles">
+            <div><span class="k">Важно</span><p>Как&nbsp;это&nbsp;ляжет на&nbsp;1С и&nbsp;кто&nbsp;будет поддерживать.</p></div>
+            <div><span class="k">Как&nbsp;читает</span><p>По&nbsp;диагонали до&nbsp;слова «1С». Потом считает, сколько фич ему чинить.</p></div>
+            <div class="pt-final"><span class="k">Итог</span><p>Дочитал. Главный вопрос без&nbsp;ответа.</p></div>
+          </div>
+        </div>
+        <ol class="feed">
+          <li class="msg off" style="--i:0"><span class="step">1. Проблема</span><p>Пропустил. Вода перед таблицей.</p></li>
+          <li class="msg" style="--i:1"><span class="step">2. Цели</span><p>«Под&nbsp;какую нагрузку это&nbsp;проектировать? Нигде не&nbsp;написано.»</p></li>
+          <li class="msg drop" style="--i:2"><span class="step">3. Решение</span><p>«Чат-бот кто&nbsp;вести будет? Калькулятор на&nbsp;чьих остатках считает?»</p><span class="st warn">Споткнулся</span></li>
+          <li class="msg" style="--i:3"><span class="step">4. Как&nbsp;сделаем</span><p>«Когда попросят доступ к&nbsp;1С? Тут&nbsp;ни&nbsp;слова, значит, попросят внезапно.»</p></li>
+          <li class="msg" style="--i:4"><span class="step">5. Почему мы</span><p>«Кто-то из&nbsp;них делал 1С в&nbsp;ритейле? По&nbsp;логотипам не&nbsp;понять.»</p></li>
+          <li class="msg" style="--i:5"><span class="step">6. Почему точно</span><p>«А&nbsp;поддержка? Кто&nbsp;чинит, когда 1С обновится?» Главный его&nbsp;вопрос, и&nbsp;он&nbsp;без&nbsp;ответа.</p></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section id="s-blocks">
+  <div class="wrap">
+    <h2 class="rv">Прогон по&nbsp;опорам</h2>
+    <p class="lead prose rv">Сильное КП отвечает на&nbsp;шесть вопросов по&nbsp;порядку. Если на&nbsp;какой-то из&nbsp;них ответа нет, клиент задает его сам, и&nbsp;обычно не&nbsp;в&nbsp;вашу пользу. Цифры в&nbsp;скобках берутся из&nbsp;брифинга.</p>
+    <div class="blocks">
+
+      <article class="block crit rv">
+        <button class="brow" type="button" aria-expanded="false"><span class="i">1</span><span class="bt"><b>Проблема клиента</b><span>Пересказ хотелки вместо проблемы.</span></span><span class="st crit">Отвалился</span><span class="chev" aria-hidden="true"></span></button>
+        <div class="bbody"><div><div class="bx">
+          <div class="bl">
+            <div class="kpq"><span class="kq">Из&nbsp;КП</span><p>«Мы&nbsp;понимаем, что&nbsp;вам необходим современный, удобный сайт с&nbsp;каталогом продукции и&nbsp;возможностью онлайн-заказа, который будет соответствовать актуальным трендам и&nbsp;ожиданиям ваших клиентов.»</p><a class="findsrc" href="#src-1" data-src="src-1">Найти в&nbsp;исходном КП</a></div>
+            <p class="bwhy">Это&nbsp;хотелка клиента, переписанная его&nbsp;же&nbsp;словами. Проблема бизнеса, из-за которой хотелка вообще появилась, в&nbsp;КП не&nbsp;названа: сколько заказов уходит, где&nbsp;они застревают, кому от&nbsp;этого больно. Раздел называется «Понимание задачи», а&nbsp;понимания в&nbsp;нем нет.</p>
+            <p class="bdo"><b>Что делать.</b> Взять из&nbsp;брифинга одну боль, назвать ее&nbsp;словами клиента и&nbsp;показать, где&nbsp;она стоит денег. Одного абзаца хватит, но&nbsp;в&nbsp;нем должна быть цифра из&nbsp;жизни «СтройМаркета». Отраслевая средняя тут&nbsp;не&nbsp;сработает.</p>
+          </div>
+          <div class="br">
+            <div class="ba">
+              <div class="segctl two" role="tablist" aria-label="Было или стало"><span class="thumb" aria-hidden="true" style="transform:translateX(100%)"></span><button type="button" role="tab" aria-selected="false" data-v="was">Было</button><button type="button" role="tab" aria-selected="true" data-v="now">Стало</button></div>
+              <div class="ba-text"><p class="was" hidden>Мы&nbsp;понимаем, что&nbsp;вам необходим современный, удобный сайт с&nbsp;каталогом продукции и&nbsp;возможностью онлайн-заказа.</p><p class="now">Сейчас заказ у&nbsp;вас идет через звонок в&nbsp;магазин: менеджер вручную сверяет остатки в&nbsp;1С и&nbsp;перезванивает. На&nbsp;это&nbsp;уходит до <span class="ph">[N минут]</span> на&nbsp;заказ, а <span class="ph">[доля]</span> клиентов за&nbsp;это&nbsp;время уходит к&nbsp;тем, у&nbsp;кого остатки видно онлайн. Сайт нужен, чтобы закрыть эту дыру. «У&nbsp;конкурентов уже&nbsp;есть» здесь второй аргумент.</p></div>
+            </div>
+          </div>
+        </div></div>
+      </article>
+
+      <article class="block crit rv">
+        <button class="brow" type="button" aria-expanded="false"><span class="i">2</span><span class="bt"><b>Цели и&nbsp;метрики</b><span>Ни&nbsp;одной цифры, ни&nbsp;одной цели.</span></span><span class="st crit">Отвалился</span><span class="chev" aria-hidden="true"></span></button>
+        <div class="bbody"><div><div class="bx">
+          <div class="bl">
+            <div class="kpq"><span class="kq">Из&nbsp;КП</span><p>Раздела нет. Ближайшее к&nbsp;цели: «повышение узнаваемости бренда и&nbsp;лояльности клиентов» в&nbsp;описании услуг.</p><a class="findsrc" href="#src-1" data-src="src-1">Найти в&nbsp;исходном КП</a></div>
+            <p class="bwhy">Во&nbsp;всем документе нет ни&nbsp;одной измеримой цели. Что&nbsp;должно измениться через полгода после запуска, никто не&nbsp;сказал, а&nbsp;значит, любой результат будет одновременно и&nbsp;успехом, и&nbsp;провалом. Это&nbsp;то, что&nbsp;Школьный называет «кот в&nbsp;мешке»: клиент не&nbsp;назвал метрику, и&nbsp;КП не&nbsp;помогло ему ее&nbsp;назвать.</p>
+            <p class="bdo"><b>Что делать.</b> Если клиент цель не&nbsp;назвал, КП должно ее&nbsp;предложить как&nbsp;гипотезу с&nbsp;вопросом. Молчать здесь хуже всего. Две-три метрики, привязанные к&nbsp;проблеме из&nbsp;первого блока. Клиент поправит, и&nbsp;разговор пойдет о&nbsp;его&nbsp;деле вместо вашего прайса.</p>
+          </div>
+          <div class="br">
+            <div class="ba">
+              <div class="segctl two" role="tablist" aria-label="Было или стало"><span class="thumb" aria-hidden="true" style="transform:translateX(100%)"></span><button type="button" role="tab" aria-selected="false" data-v="was">Было</button><button type="button" role="tab" aria-selected="true" data-v="now">Стало</button></div>
+              <div class="ba-text"><p class="was" hidden>Раздела нет.</p><p class="now">Цель проекта, как&nbsp;мы&nbsp;ее&nbsp;услышали на&nbsp;брифинге, и&nbsp;ее&nbsp;надо подтвердить: за&nbsp;6&nbsp;месяцев после запуска перевести <span class="ph">[15%]</span> розничных заказов в&nbsp;онлайн и&nbsp;снять с&nbsp;менеджеров магазинов <span class="ph">[треть]</span> звонков по&nbsp;остаткам. Меряем: доля онлайн-заказов, среднее время от&nbsp;заказа до&nbsp;подтверждения, число звонков в&nbsp;магазины. Если у&nbsp;вас другие приоритеты, мы&nbsp;перестроим решение под&nbsp;них до&nbsp;старта.</p></div>
+            </div>
+          </div>
+        </div></div>
+      </article>
+
+      <article class="block warn rv">
+        <button class="brow" type="button" aria-expanded="false"><span class="i">3</span><span class="bt"><b>Решение</b><span>Список из&nbsp;11 услуг, три без&nbsp;задачи.</span></span><span class="st warn">Споткнулся</span><span class="chev" aria-hidden="true"></span></button>
+        <div class="bbody"><div><div class="bx">
+          <div class="bl">
+            <div class="kpq"><span class="kq">Из&nbsp;КП</span><p>Одиннадцать пунктов подряд: аналитика, UX/UI, адаптивная верстка, каталог, корзина, интеграция с&nbsp;1С, личный кабинет, калькулятор материалов, motion-анимации, чат-бот, SEO-оптимизация.</p><a class="findsrc" href="#src-3" data-src="src-3">Найти в&nbsp;исходном КП</a></div>
+            <p class="bwhy">Это&nbsp;«питч наоборот»: список того, что&nbsp;агентство умеет, вместо ответа на&nbsp;задачу клиента. Половина пунктов по&nbsp;делу: каталог, корзина, 1С, адаптив. Вторая половина ничем не&nbsp;привязана: зачем «СтройМаркету» motion-анимации и&nbsp;чат-бот, в&nbsp;КП не&nbsp;объяснено. Это&nbsp;те самые фичи ради фич, а&nbsp;клиент чувствует, когда ему продают комплект вместо решения.</p>
+            <p class="bdo"><b>Что делать.</b> Каждый пункт привязать к&nbsp;цели из&nbsp;блока 2 одной строкой: «что&nbsp;это&nbsp;дает». Что&nbsp;привязать не&nbsp;получается, вынести в&nbsp;«опционально, если подтвердится на&nbsp;аналитике» или&nbsp;убрать. Список станет короче, а&nbsp;КП сильнее.</p>
+          </div>
+          <div class="br">
+            <div class="ba">
+              <div class="segctl two" role="tablist" aria-label="Было или стало"><span class="thumb" aria-hidden="true" style="transform:translateX(100%)"></span><button type="button" role="tab" aria-selected="false" data-v="was">Было</button><button type="button" role="tab" aria-selected="true" data-v="now">Стало</button></div>
+              <div class="ba-text"><p class="was" hidden>Motion-анимации для&nbsp;современного, динамичного восприятия сайта. Чат-бот для&nbsp;оперативной консультации клиентов 24/7.</p><p class="now">Каталог с&nbsp;живыми остатками из&nbsp;1С: клиент видит, есть&nbsp;ли&nbsp;товар в&nbsp;его&nbsp;магазине, и&nbsp;не&nbsp;звонит. Корзина и&nbsp;заказ с&nbsp;самовывозом из&nbsp;выбранного магазина: закрывает цель по&nbsp;онлайн-заказам. Чат-бот и&nbsp;калькулятор материалов в&nbsp;базовый объем не&nbsp;включаем: они требуют, чтобы кто-то на&nbsp;вашей стороне их&nbsp;вел. Вернемся к&nbsp;ним после запуска, если аналитика покажет спрос.</p></div>
+            </div>
+          </div>
+        </div></div>
+      </article>
+
+      <article class="block good rv">
+        <button class="brow" type="button" aria-expanded="false"><span class="i">4</span><span class="bt"><b>Как&nbsp;сделаем</b><span>Этапы есть, T&amp;M торчит хвостом.</span></span><span class="st good">Прошло</span><span class="chev" aria-hidden="true"></span></button>
+        <div class="bbody"><div><div class="bx">
+          <div class="bl">
+            <div class="kpq"><span class="kq">Из&nbsp;КП</span><p>Аналитика 2&nbsp;недели → Дизайн 4&nbsp;недели → Разработка 8&nbsp;недель → Тестирование и&nbsp;запуск 2&nbsp;недели. Итого 16&nbsp;недель. Ниже: «Дополнительные работы вне объема оцениваются по&nbsp;Time &amp; Material, 3&nbsp;500&nbsp;руб/час».</p><a class="findsrc" href="#src-4" data-src="src-4">Найти в&nbsp;исходном КП</a></div>
+            <p class="bwhy">Сам план хороший: этапы названы, сроки честные, это&nbsp;лучшее место в&nbsp;документе. Две дыры. Первая: не&nbsp;сказано, что&nbsp;на&nbsp;каждом этапе нужно от&nbsp;клиента (контент, доступы к&nbsp;1С, согласования), а&nbsp;именно на&nbsp;этом сроки и&nbsp;плывут. Вторая: T&amp;M подан как&nbsp;оговорка мелким шрифтом, с&nbsp;опаской. Клиент читает это&nbsp;как&nbsp;«цена не&nbsp;окончательная».</p>
+            <p class="bdo"><b>Что делать.</b> Добавить к&nbsp;каждому этапу строку «что&nbsp;нужно от&nbsp;вас». T&amp;M вынести из&nbsp;подвала и&nbsp;объяснить как&nbsp;механизм: для&nbsp;чего он, как&nbsp;согласуется, какой у&nbsp;него потолок. Уверенно, без&nbsp;оправданий.</p>
+          </div>
+          <div class="br">
+            <div class="ba">
+              <div class="segctl two" role="tablist" aria-label="Было или стало"><span class="thumb" aria-hidden="true" style="transform:translateX(100%)"></span><button type="button" role="tab" aria-selected="false" data-v="was">Было</button><button type="button" role="tab" aria-selected="true" data-v="now">Стало</button></div>
+              <div class="ba-text"><p class="was" hidden>Дополнительные работы вне объема оцениваются по&nbsp;Time &amp; Material, 3&nbsp;500&nbsp;руб/час.</p><p class="now">Фиксированная стоимость покрывает весь объем выше. Если по&nbsp;ходу появятся задачи вне его&nbsp;(например, новый раздел или&nbsp;интеграция, которой нет в&nbsp;списке), мы&nbsp;оцениваем их&nbsp;отдельно по&nbsp;3&nbsp;500&nbsp;руб/час, согласуем письменно до&nbsp;начала и&nbsp;не&nbsp;запускаем без&nbsp;вашего «да». За&nbsp;16&nbsp;недель по&nbsp;нашим проектам такого объема это&nbsp;обычно от&nbsp;0 до <span class="ph">[N]</span> часов.</p></div>
+            </div>
+          </div>
+        </div></div>
+      </article>
+
+      <article class="block crit rv">
+        <button class="brow" type="button" aria-expanded="false"><span class="i">5</span><span class="bt"><b>Почему мы</b><span>«Опытная команда» подходит любому.</span></span><span class="st crit">Отвалился</span><span class="chev" aria-hidden="true"></span></button>
+        <div class="bbody"><div><div class="bx">
+          <div class="bl">
+            <div class="kpq"><span class="kq">Из&nbsp;КП</span><p>«Опытная команда профессионалов. Индивидуальный подход к&nbsp;каждому проекту. Гарантия качества. Работаем по&nbsp;договору. Более 200 реализованных проектов.» Ниже восемь логотипов клиентов.</p><a class="findsrc" href="#src-5" data-src="src-5">Найти в&nbsp;исходном КП</a></div>
+            <p class="bwhy">Ни&nbsp;одно из&nbsp;этих утверждений нельзя проверить, и&nbsp;все&nbsp;они подходят любому агентству. «Сильная команда» без&nbsp;конкретики не&nbsp;аргумент. Логотипы без&nbsp;результата тоже: клиент не&nbsp;знает, что&nbsp;вы&nbsp;им сделали и&nbsp;сработало&nbsp;ли. Единственная цифра, «200 проектов», говорит о&nbsp;конвейере. Об&nbsp;экспертизе в&nbsp;его&nbsp;отрасли она не&nbsp;говорит ничего.</p>
+            <p class="bdo"><b>Что делать.</b> Один кейс из&nbsp;смежной отрасли с&nbsp;цифрой до&nbsp;и&nbsp;после. Два-три человека поименно, кто&nbsp;именно будет делать, с&nbsp;одной строкой про&nbsp;опыт каждого. Убрать все, что&nbsp;нельзя проверить. Меньше слов, больше веса.</p>
+          </div>
+          <div class="br">
+            <div class="ba">
+              <div class="segctl two" role="tablist" aria-label="Было или стало"><span class="thumb" aria-hidden="true" style="transform:translateX(100%)"></span><button type="button" role="tab" aria-selected="false" data-v="was">Было</button><button type="button" role="tab" aria-selected="true" data-v="now">Стало</button></div>
+              <div class="ba-text"><p class="was" hidden>Опытная команда профессионалов. Индивидуальный подход к&nbsp;каждому проекту. Гарантия качества.</p><p class="now">В&nbsp;2025 мы&nbsp;запустили каталог с&nbsp;остатками из&nbsp;1С для <span class="ph">[сеть, отрасль]</span>: за&nbsp;первые 4&nbsp;месяца <span class="ph">[N%]</span> заказов ушло в&nbsp;онлайн, звонков в&nbsp;магазины стало на <span class="ph">[N%]</span> меньше. Проект вели те&nbsp;же&nbsp;люди, что&nbsp;будут на&nbsp;вашем: <span class="ph">[имя]</span>, руководитель проекта, 6 лет в&nbsp;ритейл-интеграциях; <span class="ph">[имя]</span>, разработчик, делал связку с&nbsp;1С у&nbsp;трех сетей. Готовы дать контакт заказчика.</p></div>
+            </div>
+          </div>
+        </div></div>
+      </article>
+
+      <article class="block warn rv">
+        <button class="brow" type="button" aria-expanded="false"><span class="i">6</span><span class="bt"><b>Почему точно сделаем</b><span>«Работаем по&nbsp;договору» и&nbsp;все.</span></span><span class="st warn">Споткнулся</span><span class="chev" aria-hidden="true"></span></button>
+        <div class="bbody"><div><div class="bx">
+          <div class="bl">
+            <div class="kpq"><span class="kq">Из&nbsp;КП</span><p>«Работаем по&nbsp;договору. Предоплата 50%, остаток по&nbsp;завершении.»</p><a class="findsrc" href="#src-6" data-src="src-6">Найти в&nbsp;исходном КП</a></div>
+            <p class="bwhy">Договор есть у&nbsp;всех. Как&nbsp;снятие риска это&nbsp;минимум, ниже которого только рукопожатие. Клиент не&nbsp;видит: как&nbsp;проходит приемка, что&nbsp;будет при&nbsp;срыве сроков, кто&nbsp;персонально отвечает, что&nbsp;с&nbsp;сайтом через месяц после запуска. Схема оплаты 50/50 при&nbsp;16&nbsp;неделях означает, что&nbsp;половину денег клиент отдает вслепую на&nbsp;четыре месяца.</p>
+            <p class="bdo"><b>Что делать.</b> Оплату привязать к&nbsp;этапам с&nbsp;приемкой каждого. Назвать ответственного. Описать, что&nbsp;происходит при&nbsp;сдвиге сроков. Сказать про&nbsp;поддержку после запуска: срок, что&nbsp;входит, сколько стоит дальше.</p>
+          </div>
+          <div class="br">
+            <div class="ba">
+              <div class="segctl two" role="tablist" aria-label="Было или стало"><span class="thumb" aria-hidden="true" style="transform:translateX(100%)"></span><button type="button" role="tab" aria-selected="false" data-v="was">Было</button><button type="button" role="tab" aria-selected="true" data-v="now">Стало</button></div>
+              <div class="ba-text"><p class="was" hidden>Работаем по&nbsp;договору. Предоплата 50%, остаток по&nbsp;завершении.</p><p class="now">Оплата по&nbsp;этапам: 20% на&nbsp;старте, дальше по&nbsp;приемке каждого этапа, остаток после запуска. Каждый этап заканчивается демонстрацией и&nbsp;вашим письменным «принято». За&nbsp;проект отвечает <span class="ph">[имя]</span>, с&nbsp;ним связь напрямую. Если срок сдвигается по&nbsp;нашей вине, этап оплачивается после фактической сдачи, без&nbsp;доплат. После запуска 2&nbsp;месяца гарантийной поддержки входят в&nbsp;стоимость, дальше <span class="ph">[N]</span> руб/мес, включая обновления связки с&nbsp;1С.</p></div>
+            </div>
+          </div>
+        </div></div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section id="s-flags">
+  <div class="wrap">
+    <h2 class="rv">Флаги и&nbsp;опоры</h2>
+    <div class="flags rv">
+      <div class="phone-wrap" id="phoneWrap"><span class="glow" aria-hidden="true"></span>
+      <div class="phone" id="lock">
+        <div class="screen">
+          <div class="sbar">
+            <span class="sb-l"></span>
+            <span class="island"></span>
+            <span class="sb-r">
+              <svg viewBox="0 0 18 12" width="18" height="12" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1" fill="#fff"/><rect x="5" y="6" width="3" height="6" rx="1" fill="#fff"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#fff"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#fff"/></svg>
+              <svg viewBox="0 0 16 12" width="16" height="12" aria-hidden="true"><path d="M8 11.5a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6zM4.6 7.4a4.8 4.8 0 0 1 6.8 0l-1.2 1.2a3.1 3.1 0 0 0-4.4 0zM2 4.9a8.5 8.5 0 0 1 12 0l-1.2 1.2a6.8 6.8 0 0 0-9.6 0z" fill="#fff"/></svg>
+              <svg viewBox="0 0 27 12" width="27" height="12" aria-hidden="true"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="#fff" stroke-opacity=".5"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#fff"/><path d="M24 4v4a2 2 0 0 0 0-4z" fill="#fff" fill-opacity=".5"/></svg>
+            </span>
+          </div>
+          <div class="lock-lock"><svg viewBox="0 0 16 20" width="14" height="18" aria-hidden="true"><rect x="1" y="8" width="14" height="11" rx="3" fill="#fff"/><path d="M4 8V6a4 4 0 0 1 8 0v2" fill="none" stroke="#fff" stroke-width="2"/></svg></div>
+          <div class="lock-date" id="lockDate">Понедельник, 7 сентября</div>
+          <div class="lock-time" id="lockTime">14:24</div>
+          <div class="narea" id="nstack">
+          <div class="ncard" data-i="0"><div class="nh"><span class="napp"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg></span><span class="nname">Telegram</span><span class="ntime">сейчас</span></div><b>Сергей</b><p><span class="nf">«О&nbsp;компании» на&nbsp;первой странице.</span> Полторы страницы про&nbsp;агентство до&nbsp;первого слова о&nbsp;нас. Закрыл раньше, чем&nbsp;дошел до&nbsp;сути.</p></div>
+          <div class="ncard" data-i="1"><div class="nh"><span class="napp"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg></span><span class="nname">Telegram</span><span class="ntime">сейчас</span></div><b>Сергей</b><p><span class="nf">Ни&nbsp;одной цифры про&nbsp;нас.</span> Ни&nbsp;оборота, ни&nbsp;заказов, ни&nbsp;звонков «СтройМаркета». Только цифры про&nbsp;агентство.</p></div>
+          <div class="ncard" data-i="2"><div class="nh"><span class="napp"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg></span><span class="nname">Telegram</span><span class="ntime">сейчас</span></div><b>Дмитрий</b><p><span class="nf">Фичи ради фич.</span> Motion, чат-бот, калькулятор. Три пункта без&nbsp;привязки к&nbsp;задаче, и&nbsp;все&nbsp;лягут на&nbsp;меня.</p></div>
+          <div class="ncard" data-i="3"><div class="nh"><span class="napp"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg></span><span class="nname">Telegram</span><span class="ntime">сейчас</span></div><b>Ольга</b><p><span class="nf">«Сильная команда» без&nbsp;содержания.</span> Опытная, индивидуальная, гарантированная. Такое можно вставить в&nbsp;любое КП.</p></div>
+          <div class="ncard" data-i="4"><div class="nh"><span class="napp"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg></span><span class="nname">Telegram</span><span class="ntime">сейчас</span></div><b>Сергей</b><p><span class="nf">T&amp;M мелким шрифтом.</span> Подан как&nbsp;оговорка. Читается как&nbsp;«цена вырастет».</p></div>
+          <div class="ncard" data-i="5"><div class="nh"><span class="napp"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg></span><span class="nname">Telegram</span><span class="ntime">сейчас</span></div><b>Ольга</b><p><span class="nf">Логотипы без&nbsp;результатов.</span> Восемь брендов, ноль историй. Ни&nbsp;одну не&nbsp;пересказать наверху.</p></div>
+            <div class="nhint" id="nhint" hidden>Telegram, 6 уведомлений</div>
+          </div>
+          <div class="lock-bottom">
+            <button type="button" class="ctl" id="torch" aria-label="Фонарик"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8 3h8v3l-2 3v12H10V9L8 6z" fill="currentColor"/></svg></button>
+            <button type="button" class="ctl" id="cam" aria-label="Камера"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="3" fill="currentColor"/><path d="M9 4h6l1.5 3h-9z" fill="currentColor"/><circle cx="12" cy="13.5" r="3.5" fill="#1b1b1f"/></svg></button>
+          </div>
+          <div class="camlayer" id="camlayer" hidden>
+            <video id="camvideo" autoplay muted playsinline></video>
+            <div class="cam-top"><span>Камера</span></div>
+            <button type="button" class="cam-close" id="camclose" aria-label="Закрыть камеру">Закрыть</button>
+          </div>
+          <div class="toast" id="lockToast" hidden></div>
+          <div class="home"></div>
+        </div>
+      </div>
+      </div>
+      <div class="holds">
+        <div class="holds-h">Что&nbsp;уже&nbsp;держит</div>
+        <ul>
+          <li><span class="hc"></span><span><b>Постатейная смета.</b> Каждый этап с&nbsp;ценой, без&nbsp;«итого» одной строкой. Сергей это&nbsp;ценит, даже если сумма не&nbsp;нравится.</span></li>
+          <li><span class="hc"></span><span><b>Этапы с&nbsp;неделями.</b> Четыре понятных шага и&nbsp;честные 16&nbsp;недель. Ольге есть что&nbsp;показать.</span></li>
+          <li><span class="hc"></span><span><b>Интеграция с&nbsp;1С названа.</b> Единственное, что&nbsp;искал Дмитрий, и&nbsp;он&nbsp;это&nbsp;нашел.</span></li>
+          <li><span class="hc"></span><span><b>Адаптив и&nbsp;SEO по&nbsp;делу.</b> Для&nbsp;ритейла это&nbsp;база, и&nbsp;хорошо, что&nbsp;она есть, без&nbsp;надувания.</span></li>
+          <li><span class="hc"></span><span><b>Нет разбега в&nbsp;смете.</b> Одна цифра, без&nbsp;«от&nbsp;1,8 до&nbsp;3,6&nbsp;млн». Целое возражение снято заранее.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="s-fixed">
+  <div class="wrap">
+    <h2 class="rv">Исправленная первая страница</h2>
+    <p class="lead prose rv">Шесть «стало» из&nbsp;разбора, собранные в&nbsp;том порядке, в&nbsp;котором прочитает ваш клиент: сначала клиент, потом вы. Цифры в&nbsp;скобках заполняются из&nbsp;брифинга.</p>
+    <div class="doc rv" id="doc">
+      <div class="doc-p" id="docp">
+        <div class="mail-bar"><span class="mail-back">Входящие</span><span class="mail-cnt">1 из 3</span></div>
+        <div class="doc-head">
+          <span class="mav">ПЛ</span>
+          <div class="mhd">
+            <div class="mrow"><b class="mfrom">Пиксель Лаб</b><span class="mdate">21 авг. 2026 г., 10:12</span></div>
+            <div class="mto">Кому: Ольга <span class="mchev"></span></div>
+          </div>
+        </div>
+        <div class="msubj">КП №0417. Сайт с&nbsp;каталогом и&nbsp;онлайн-заказом</div>
+        <div class="ds stay" style="--i:0"><div class="doc-kicker">Коммерческое предложение</div><h3 class="doc-title">Сайт с&nbsp;каталогом и&nbsp;онлайн-заказом</h3><p class="doc-sub">Первая страница. Этапы, смета и&nbsp;условия идут дальше без&nbsp;изменений.</p></div>
+        <div class="doc-body" id="docBody">
+          <div class="doc-cta" id="docCta">
+            <div class="doc-cta-card">
+              <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="var(--accent)"/><path d="M14 2v5h5" fill="#fff" fill-opacity=".55"/><rect x="7.5" y="11" width="9" height="1.6" rx=".8" fill="#fff"/><rect x="7.5" y="14.2" width="9" height="1.6" rx=".8" fill="#fff"/><rect x="7.5" y="17.4" width="6" height="1.6" rx=".8" fill="#fff"/></svg>
+              <b>Первая страница собрана</b>
+              <p>Шесть исправленных разделов в&nbsp;том порядке, в&nbsp;котором прочитает ваш клиент. Разверните, чтобы прочитать целиком и&nbsp;скачать в&nbsp;Word или&nbsp;PDF.</p>
+              <button class="assemble" type="button" id="assemble">Развернуть страницу<svg viewBox="0 0 12 8" width="12" height="8" aria-hidden="true"><path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+          </div>
+          <div class="ds" style="--i:1"><h4>Что&nbsp;происходит сейчас</h4><p>Сейчас заказ у&nbsp;вас идет через звонок в&nbsp;магазин: менеджер вручную сверяет остатки в&nbsp;1С и&nbsp;перезванивает. На&nbsp;это&nbsp;уходит до <span class="ph">[N минут]</span> на&nbsp;заказ, а <span class="ph">[доля]</span> клиентов за&nbsp;это&nbsp;время уходит к&nbsp;тем, у&nbsp;кого остатки видно онлайн. Сайт нужен, чтобы закрыть эту дыру. «У&nbsp;конкурентов уже&nbsp;есть» здесь второй аргумент.</p></div>
+          <div class="ds" style="--i:2"><h4>Цель проекта, как&nbsp;мы&nbsp;ее&nbsp;услышали</h4><p>За&nbsp;6&nbsp;месяцев после запуска перевести <span class="ph">[15%]</span> розничных заказов в&nbsp;онлайн и&nbsp;снять с&nbsp;менеджеров магазинов <span class="ph">[треть]</span> звонков по&nbsp;остаткам. Меряем: доля онлайн-заказов, среднее время от&nbsp;заказа до&nbsp;подтверждения, число звонков в&nbsp;магазины. Если у&nbsp;вас другие приоритеты, мы&nbsp;перестроим решение под&nbsp;них до&nbsp;старта.</p></div>
+          <div class="ds" style="--i:3"><h4>Что&nbsp;делаем и&nbsp;зачем</h4><p>Каталог с&nbsp;живыми остатками из&nbsp;1С: клиент видит, есть&nbsp;ли&nbsp;товар в&nbsp;его&nbsp;магазине, и&nbsp;не&nbsp;звонит. Корзина и&nbsp;заказ с&nbsp;самовывозом из&nbsp;выбранного магазина: закрывает цель по&nbsp;онлайн-заказам. Чат-бот и&nbsp;калькулятор материалов в&nbsp;базовый объем не&nbsp;включаем: они требуют, чтобы кто-то на&nbsp;вашей стороне их&nbsp;вел. Вернемся к&nbsp;ним после запуска, если аналитика покажет спрос.</p></div>
+          <div class="ds" style="--i:4"><h4>Как&nbsp;работаем и&nbsp;что&nbsp;нужно от&nbsp;вас</h4><p>Четыре этапа, 16&nbsp;недель: аналитика, дизайн, разработка, запуск. На&nbsp;каждом этапе от&nbsp;вас нужны доступы к&nbsp;1С, контент и&nbsp;одно согласование. Фиксированная стоимость покрывает весь объем. Если по&nbsp;ходу появятся задачи вне его, мы&nbsp;оцениваем их&nbsp;отдельно по&nbsp;3&nbsp;500&nbsp;руб/час, согласуем письменно до&nbsp;начала и&nbsp;не&nbsp;запускаем без&nbsp;вашего «да». За&nbsp;16&nbsp;недель по&nbsp;нашим проектам такого объема это&nbsp;обычно от&nbsp;0 до <span class="ph">[N]</span> часов.</p></div>
+          <div class="ds" style="--i:5"><h4>Кто&nbsp;делает и&nbsp;что&nbsp;уже&nbsp;сделали</h4><p>В&nbsp;2025 мы&nbsp;запустили каталог с&nbsp;остатками из&nbsp;1С для <span class="ph">[сеть, отрасль]</span>: за&nbsp;первые 4&nbsp;месяца <span class="ph">[N%]</span> заказов ушло в&nbsp;онлайн, звонков в&nbsp;магазины стало на <span class="ph">[N%]</span> меньше. Проект вели те&nbsp;же&nbsp;люди, что&nbsp;будут на&nbsp;вашем: <span class="ph">[имя]</span>, руководитель проекта, 6 лет в&nbsp;ритейл-интеграциях; <span class="ph">[имя]</span>, разработчик, делал связку с&nbsp;1С у&nbsp;трех сетей. Готовы дать контакт заказчика.</p></div>
+          <div class="ds" style="--i:6"><h4>Как&nbsp;вы&nbsp;ничем не&nbsp;рискуете</h4><p>Оплата по&nbsp;этапам: 20% на&nbsp;старте, дальше по&nbsp;приемке каждого этапа, остаток после запуска. Каждый этап заканчивается демонстрацией и&nbsp;вашим письменным «принято». За&nbsp;проект отвечает <span class="ph">[имя]</span>, с&nbsp;ним связь напрямую. Если срок сдвигается по&nbsp;нашей вине, этап оплачивается после фактической сдачи, без&nbsp;доплат. После запуска 2&nbsp;месяца гарантийной поддержки входят в&nbsp;стоимость, дальше <span class="ph">[N]</span> руб/мес, включая обновления связки с&nbsp;1С.</p></div>
+        </div>
+        <div class="doc-foot ds" style="--i:7">Пиксель Лаб. Алексей Р., менеджер проекта. +7 (9xx) xxx-xx-xx, alexey@pixel-lab.example</div>
+      </div>
+      <div class="doc-actions">
+        <div class="dl-group" id="dlGroup" hidden>
+          <button type="button" class="dl" id="dlWord"><svg class="fic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="#2B579A"/><path d="M5.6 7.5h2.1l1.4 6.2 1.6-6.2h1.9l1.6 6.2 1.4-6.2h2.1l-2.5 9h-2l-1.6-6-1.6 6h-2z" fill="#fff"/></svg>Скачать Word</button>
+          <button type="button" class="dl" id="dlPdf"><svg class="fic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="#E0342C"/><text x="12" y="15.6" text-anchor="middle" font-family="-apple-system,Helvetica,Arial,sans-serif" font-size="7.2" font-weight="700" fill="#fff">PDF</text></svg>Сохранить в&nbsp;PDF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="s-plan">
+  <div class="wrap">
+    <h2 class="rv">Что&nbsp;сделать за&nbsp;час</h2>
+    <div class="hour rv" id="hour">
+      <div class="timer">
+        <div class="ring">
+          <svg viewBox="0 0 300 300" width="300" height="300" aria-hidden="true">
+            <circle cx="150" cy="150" r="118" fill="none" stroke="var(--line)" stroke-width="14"/>
+            <circle class="seg" cx="150" cy="150" r="118" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="116.57 741.42" stroke-dashoffset="116.57" transform="rotate(-88.301 150 150)" style="--d:0ms"/>
+            <circle class="seg" cx="150" cy="150" r="118" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="240.14 741.42" stroke-dashoffset="240.14" transform="rotate(-28.301 150 150)" style="--d:140ms"/>
+            <circle class="seg" cx="150" cy="150" r="118" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="54.78 741.42" stroke-dashoffset="54.78" transform="rotate(91.699 150 150)" style="--d:280ms"/>
+            <circle class="seg" cx="150" cy="150" r="118" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="178.35 741.42" stroke-dashoffset="178.35" transform="rotate(121.699 150 150)" style="--d:420ms"/>
+            <circle class="seg" cx="150" cy="150" r="118" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="116.57 741.42" stroke-dashoffset="116.57" transform="rotate(211.699 150 150)" style="--d:560ms"/>
+            <circle class="prog" id="prog" cx="150" cy="150" r="118" fill="none" stroke="#FF9F0A" stroke-width="14" stroke-linecap="round" stroke-dasharray="0 741.42" transform="rotate(-90 150 150)"/>
+          </svg>
+          <div class="ring-c">
+            <div class="tleft" id="tleft">60:00</div>
+            <div class="tlabel" id="tlabel">Пять правок, один час</div>
+          </div>
+        </div>
+        <div class="tctl">
+          <button type="button" class="tbtn cancel" id="tcancel">Отмена</button>
+          <button type="button" class="tbtn start" id="tstart">Старт</button>
+        </div>
+      </div>
+      <ol class="plan" id="plan">
+        <li data-min="10"><span class="pn"><i>1</i></span><span class="t">Поменять местами: сначала клиент, потом вы<span>«О&nbsp;компании» уезжает в&nbsp;конец, на&nbsp;первую страницу встает проблема «СтройМаркета» и&nbsp;цель. Ноль новых слов, другой порядок.</span></span><span class="m">10&nbsp;мин</span></li>
+        <li data-min="20"><span class="pn"><i>2</i></span><span class="t">Написать цель как&nbsp;гипотезу с&nbsp;вопросом<span>Две-три метрики из&nbsp;блока 2 и&nbsp;фраза «поправьте нас». Это&nbsp;единственный пункт, где&nbsp;придется думать, остальное перестановки.</span></span><span class="m">20&nbsp;мин</span></li>
+        <li data-min="5"><span class="pn"><i>3</i></span><span class="t">Убрать motion, чат-бот и&nbsp;калькулятор в&nbsp;«опционально»<span>Список решений станет короче и&nbsp;целиком привязанным к&nbsp;цели. Клиент увидит, что&nbsp;вы&nbsp;умеете отказываться.</span></span><span class="m">5&nbsp;мин</span></li>
+        <li data-min="15"><span class="pn"><i>4</i></span><span class="t">Заменить «Почему мы» на&nbsp;один кейс и&nbsp;двух людей<span>Отрасль, цифра, имена. Восемь логотипов можно оставить ниже, но&nbsp;подписать, что&nbsp;сделано.</span></span><span class="m">15&nbsp;мин</span></li>
+        <li data-min="10"><span class="pn"><i>5</i></span><span class="t">Переписать оплату на&nbsp;этапную и&nbsp;объяснить T&amp;M<span>Снимает страх Сергея и&nbsp;главный вопрос Дмитрия про&nbsp;поддержку. Два абзаца из&nbsp;блоков 4 и&nbsp;6.</span></span><span class="m">10&nbsp;мин</span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section id="s-method">
+  <div class="wrap">
+    <h2 class="rv">Методика</h2>
+    <div class="mintro rv">
+      <p>Разбор построен на&nbsp;подходе Вадима Школьного, коммерческого директора в&nbsp;Серч, ex-коммерческого директора MAX. У&nbsp;многих агентств КП это&nbsp;смета плюс сообщение в&nbsp;Telegram. Так&nbsp;можно работать только при&nbsp;глубоком вовлечении и&nbsp;постоянном контакте с&nbsp;клиентом. Как&nbsp;только директор попросит КП на&nbsp;стол, нести будет нечего. Его&nbsp;ответ: шесть вопросов, на&nbsp;которые КП отвечает по&nbsp;порядку.</p>
+      <div class="msig"><div><b>Вадим Школьный</b><span>@ShkolnyiAccount, коммерческий директор в&nbsp;Серч, ex-коммерческий директор MAX</span></div><a class="tgl" href="https://t.me/ShkolnyiAccount/35" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span>Читать подробнее</span></a></div>
+    </div>
+    <div class="mgrid rv">
+      <div class="msticky" id="msticky" aria-hidden="true">
+        <div class="mnum" id="mnum">01</div>
+        <div class="mtitle" id="mtitle">Проблема клиента</div>
+        <div class="msub" id="msub">Что&nbsp;болит и&nbsp;где&nbsp;это&nbsp;стоит денег</div>
+        <div class="mdots" id="mdots"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="msteps">
+        <article class="mstep" data-n="01" data-title="Проблема клиента" data-sub="Что болит и где это стоит денег">
+          <div class="mstep-h"><span class="n">01</span><h4>Проблема клиента</h4><span class="sub">Что&nbsp;болит и&nbsp;где&nbsp;это&nbsp;стоит денег</span></div>
+          <div class="mp"><b>Питч наоборот</b><p>Начать сразу с&nbsp;услуг, плана и&nbsp;форматов, до&nbsp;того как&nbsp;прозвучала цель клиента. Клиент слушает про&nbsp;вас и&nbsp;не&nbsp;слышит про&nbsp;себя. То&nbsp;же&nbsp;самое происходит с&nbsp;КП, где&nbsp;раздел «О&nbsp;компании» стоит первым.</p><a class="tgl" href="https://t.me/ShkolnyiAccount/63" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span>Читать подробнее</span></a></div><div class="mp"><b>Стоимость и&nbsp;сроки не&nbsp;на&nbsp;первый слайд</b><p>Из&nbsp;его&nbsp;вредных советов: вынести цену и&nbsp;сроки вперед и&nbsp;убрать бизнес-обоснования, цели и&nbsp;планы. Клиент сразу читает такой документ как&nbsp;счет, к&nbsp;его&nbsp;проблемам он&nbsp;отношения не&nbsp;имеет.</p><a class="tgl" href="https://t.me/ShkolnyiAccount/64" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span>Читать подробнее</span></a></div>
+        </article>
+        <article class="mstep" data-n="02" data-title="Цели" data-sub="Что должно измениться, в цифрах">
+          <div class="mstep-h"><span class="n">02</span><h4>Цели</h4><span class="sub">Что&nbsp;должно измениться, в&nbsp;цифрах</span></div>
+          <div class="mp"><b>Без&nbsp;метрики клиент покупает кота в&nbsp;мешке</b><p>Если клиент не&nbsp;назвал ни&nbsp;одной метрики и&nbsp;цели, он&nbsp;покупает кота в&nbsp;мешке, и&nbsp;Школьный такими котами не&nbsp;торгует. Фичи ради фич, сайты ради сайтов: motion-дизайн, калькулятор кирпича и&nbsp;фирменный тамагочи, потому что&nbsp;круто. Таким клиентам он&nbsp;говорит нет, и&nbsp;семь из&nbsp;десяти возвращаются уже&nbsp;с&nbsp;целью.</p><a class="tgl" href="https://t.me/ShkolnyiAccount/21" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span>Читать подробнее</span></a></div>
+        </article>
+        <article class="mstep" data-n="03" data-title="Решение" data-sub="Ответ на задачу клиента">
+          <div class="mstep-h"><span class="n">03</span><h4>Решение</h4><span class="sub">Ответ на&nbsp;задачу клиента</span></div>
+          <div class="mp"><b>Абстрактное предложение вместо ответа</b><p>Частая беда КП: само решение выглядит как&nbsp;абстрактное предложение, к&nbsp;задаче клиента оно не&nbsp;привязано. Проверка простая: у&nbsp;каждого пункта должна быть строка, что&nbsp;он&nbsp;дает.</p><a class="tgl" href="https://t.me/ShkolnyiAccount/35" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span>Читать подробнее</span></a></div><div class="mp"><b>Второе «нет»: клиентам, не&nbsp;знающим свою аудиторию</b><p>«Сделайте нам продающий сайт». «А&nbsp;кому продаем?» «Ну, людям». Продукты, сервисы и&nbsp;фичи запускают на&nbsp;аудиторию, чтобы вызвать нужное действие. В&nbsp;пустоту их&nbsp;не&nbsp;запускают.</p><a class="tgl" href="https://t.me/ShkolnyiAccount/21" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span>Читать подробнее</span></a></div>
+        </article>
+        <article class="mstep" data-n="04" data-title="Как сделаем" data-sub="Этапы, сроки, что нужно от клиента">
+          <div class="mstep-h"><span class="n">04</span><h4>Как&nbsp;сделаем</h4><span class="sub">Этапы, сроки, что&nbsp;нужно от&nbsp;клиента</span></div>
+          <div class="mp"><b>T&amp;M не&nbsp;продают с&nbsp;опаской</b><p>Главная ошибка с&nbsp;Time &amp; Material в&nbsp;том, как&nbsp;его&nbsp;подают: с&nbsp;оговорками и&nbsp;мелким шрифтом. Клиент чувствует эту опаску и&nbsp;читает ее&nbsp;как&nbsp;риск. Механизм надо объяснять уверенно.</p><a class="tgl" href="https://t.me/ShkolnyiAccount/63" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span>Читать подробнее</span></a></div><div class="mp"><b>Разбег в&nbsp;смете рождает возражение</b><p>Оценка «от&nbsp;X до&nbsp;2X» автоматически создает у&nbsp;клиента вопрос, который вы&nbsp;сами и&nbsp;подсунули. Одна цифра с&nbsp;понятным объемом, а&nbsp;то, что&nbsp;вне объема, отдельным механизмом.</p><a class="tgl" href="https://t.me/ShkolnyiAccount/63" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span>Читать подробнее</span></a></div>
+        </article>
+        <article class="mstep" data-n="05" data-title="Почему мы" data-sub="Кейсы с цифрами, люди поименно">
+          <div class="mstep-h"><span class="n">05</span><h4>Почему мы</h4><span class="sub">Кейсы с&nbsp;цифрами, люди поименно</span></div>
+          <div class="mp"><b>«Сильная команда» это&nbsp;не&nbsp;аргумент</b><p>Абстрактные заявления о&nbsp;команде без&nbsp;конкретики, метрик и&nbsp;экспертизы оставляют клиента равнодушным. Продают кейсы с&nbsp;фокусом на&nbsp;результат. Перечисление достоинств не&nbsp;продает.</p><a class="tgl" href="https://t.me/ShkolnyiAccount/63" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span>Читать подробнее</span></a></div>
+        </article>
+        <article class="mstep" data-n="06" data-title="Почему точно" data-sub="Риски сняты, приемка, поддержка">
+          <div class="mstep-h"><span class="n">06</span><h4>Почему точно</h4><span class="sub">Риски сняты, приемка, поддержка</span></div>
+          <div class="mp"><b>Продать значит понравиться тому, кто&nbsp;драйвит</b><p>Решение по&nbsp;подрядчику принимает группа: ЛПР и&nbsp;те, кто&nbsp;на&nbsp;него влияет. Среди них всегда есть самый активный, кто&nbsp;продавливает изменения, носит ваше КП коллегам и&nbsp;тащит проект вперед. С&nbsp;ним и&nbsp;нужно строить самые тесные отношения. В&nbsp;КП должен быть материал для&nbsp;этого союзника.</p><a class="tgl" href="https://t.me/ShkolnyiAccount/51" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span>Читать подробнее</span></a></div><div class="mp"><b>После отправки не&nbsp;замирать</b><p>Файл не&nbsp;отправляют без&nbsp;сопроводительного слова, после отправки напоминают о&nbsp;себе новой ценностью, а&nbsp;если выбрали не&nbsp;вас, спрашивают почему. Иначе клиент остается наедине с&nbsp;файлом и&nbsp;своими сомнениями.</p><a class="tgl" href="https://t.me/ShkolnyiAccount/64" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg><span>Читать подробнее</span></a></div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="s-source">
+  <div class="wrap">
+    <h2 class="rv">Исходное КП</h2>
+    <details class="rv">
+      <summary>Полный текст КП №0417, «Пиксель Лаб» для&nbsp;ООО «СтройМаркет»</summary>
+      <div class="kp">
+        <p class="fine">Компании и&nbsp;люди вымышлены. Документ собран как&nbsp;типовое КП среднего digital-агентства для&nbsp;проверки методики.</p>
+        <h3 class="h0">Коммерческое предложение №0417 от&nbsp;21.08.2026</h3>
+        <p>Разработка корпоративного сайта с&nbsp;каталогом и&nbsp;функцией онлайн-заказа для&nbsp;ООО «СтройМаркет»</p>
+        <h3>1. О&nbsp;компании</h3>
+        <p>Digital-агентство «Пиксель Лаб» работает на&nbsp;рынке веб-разработки с&nbsp;2018 года. За&nbsp;это&nbsp;время мы&nbsp;реализовали более 200 проектов различной сложности для&nbsp;клиентов из&nbsp;сфер ритейла, производства, финансов и&nbsp;услуг. Наша команда состоит из&nbsp;опытных профессионалов: аналитиков, UX/UI-дизайнеров, frontend- и&nbsp;backend-разработчиков, тестировщиков и&nbsp;проектных менеджеров.</p>
+        <p>Мы&nbsp;придерживаемся индивидуального подхода к&nbsp;каждому проекту и&nbsp;ориентируемся на&nbsp;достижение бизнес-результатов наших клиентов. Наши ключевые ценности: качество, прозрачность, соблюдение сроков и&nbsp;долгосрочное партнерство.</p>
+        <p>Агентство входит в&nbsp;ТОП-100 веб-студий региона по&nbsp;версии отраслевого рейтинга и&nbsp;является сертифицированным партнером ряда технологических платформ.</p>
+        <h3>2. Понимание задачи</h3>
+        <p id="src-1">Мы&nbsp;понимаем, что&nbsp;вам необходим современный, удобный сайт с&nbsp;каталогом продукции и&nbsp;возможностью онлайн-заказа, который будет соответствовать актуальным трендам и&nbsp;ожиданиям ваших клиентов. Сайт должен подчеркивать статус компании как&nbsp;одного из&nbsp;лидеров регионального рынка строительных материалов, обеспечивать удобную навигацию по&nbsp;ассортименту и&nbsp;способствовать повышению узнаваемости бренда и&nbsp;лояльности клиентов.</p>
+        <h3>3. Предлагаемое решение</h3>
+        <p>Для&nbsp;реализации поставленной задачи мы&nbsp;предлагаем комплексное решение, включающее:</p>
+        <ul id="src-3">
+          <li>Аналитику и&nbsp;проектирование: исследование конкурентов, разработку структуры сайта и&nbsp;пользовательских сценариев.</li>
+          <li>UX/UI-дизайн: разработку уникального современного дизайна с&nbsp;учетом фирменного стиля компании.</li>
+          <li>Адаптивную верстку для&nbsp;корректного отображения на&nbsp;всех устройствах.</li>
+          <li>Каталог продукции с&nbsp;фильтрацией, поиском и&nbsp;удобной карточкой товара.</li>
+          <li>Корзину и&nbsp;оформление заказа.</li>
+          <li>Интеграцию с&nbsp;1С для&nbsp;синхронизации номенклатуры, цен и&nbsp;остатков.</li>
+          <li>Личный кабинет клиента с&nbsp;историей заказов.</li>
+          <li>Калькулятор строительных материалов для&nbsp;расчета необходимого количества.</li>
+          <li>Motion-анимации для&nbsp;современного, динамичного восприятия сайта.</li>
+          <li>Чат-бот для&nbsp;оперативной консультации клиентов 24/7.</li>
+          <li>Базовую SEO-оптимизацию для&nbsp;продвижения в&nbsp;поисковых системах.</li>
+        </ul>
+        <h3>4. Этапы и&nbsp;сроки</h3>
+        <table>
+          <thead><tr><th>Этап</th><th>Содержание</th><th>Срок</th></tr></thead>
+          <tbody>
+            <tr><td>1. Аналитика</td><td>Исследование, структура, прототипы</td><td>2&nbsp;недели</td></tr>
+            <tr><td>2. Дизайн</td><td>Дизайн-концепция, макеты всех страниц</td><td>4&nbsp;недели</td></tr>
+            <tr><td>3. Разработка</td><td>Верстка, программирование, интеграция с&nbsp;1С</td><td>8&nbsp;недель</td></tr>
+            <tr><td>4. Тестирование и&nbsp;запуск</td><td>Тестирование, наполнение, перенос на&nbsp;хостинг</td><td>2&nbsp;недели</td></tr>
+          </tbody>
+        </table>
+        <p>Общий срок реализации: 16&nbsp;недель.</p>
+        <h3>5. Стоимость</h3>
+        <table>
+          <thead><tr><th>Этап</th><th>Стоимость, руб.</th></tr></thead>
+          <tbody>
+            <tr><td>Аналитика и&nbsp;проектирование</td><td>240&nbsp;000</td></tr>
+            <tr><td>UX/UI-дизайн</td><td>480&nbsp;000</td></tr>
+            <tr><td>Разработка и&nbsp;интеграции</td><td>1&nbsp;440 000</td></tr>
+            <tr><td>Тестирование и&nbsp;запуск</td><td>240&nbsp;000</td></tr>
+            <tr><td><b>Итого</b></td><td><b>2&nbsp;400 000</b></td></tr>
+          </tbody>
+        </table>
+        <p class="fine" id="src-4">Дополнительные работы вне объема оцениваются по&nbsp;Time &amp; Material, 3&nbsp;500&nbsp;руб/час. Стоимость хостинга и&nbsp;лицензий сторонних сервисов не&nbsp;включена.</p>
+        <h3>6. Почему мы</h3>
+        <ul id="src-5">
+          <li>Опытная команда профессионалов</li>
+          <li>Индивидуальный подход к&nbsp;каждому проекту</li>
+          <li>Гарантия качества</li>
+          <li>Работаем по&nbsp;договору</li>
+          <li>Более 200 реализованных проектов</li>
+        </ul>
+        <h3>7. Наши клиенты</h3>
+        <p>[Логотипы: Уралстрой, Дом-Сервис, Фаворит, Гринхаус, Металл-Профи, Квадрат, Лига Мебель, Ремонт-Сити]</p>
+        <h3>8. Условия</h3>
+        <p id="src-6">Работаем по&nbsp;договору. Предоплата 50%, остаток по&nbsp;завершении. Предложение действительно 30 дней.</p>
+        <h3>9. Контакты</h3>
+        <p>Менеджер проекта: Алексей Р. +7 (9xx) xxx-xx-xx, alexey@pixel-lab.example</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="sig rv">
+      <div class="sig-h">Made with <svg class="heart" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M12 21s-6.7-4.3-9.3-8.2C.6 9.6 1.9 5.6 5.4 4.6c2.2-.6 4.4.3 5.6 2 1.2-1.7 3.4-2.6 5.6-2 3.5 1 4.8 5 2.7 8.2C18.7 16.7 12 21 12 21z"/></svg> by Кристина Винтер</div>
+      <div class="sig-s">Канал продакт-инженера с&nbsp;острым юморком</div>
+      <a class="sig-btn" href="https://t.me/vintersbrain" target="_blank" rel="noopener">Подписаться в&nbsp;Telegram</a>
+      <div class="sig-handle">@vintersbrain</div>
+    </div>
+    <div class="fine">Синтетический пример. Компании и&nbsp;люди вымышлены.</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* scroll reveal */
+  var items = document.querySelectorAll('.rv, .pop');
+  if (!('IntersectionObserver' in window) || reduce) {
+    items.forEach(function(el){ el.classList.add('in'); });
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (!e.isIntersecting) return;
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+    items.forEach(function(el){ io.observe(el); });
+  }
+
+  /* iMessage chat */
+  var chat = document.getElementById('chat');
+  if (chat) {
+    var msgs = chat.querySelectorAll('.m');
+    var list = chat.querySelector('.msgs');
+    var typing = document.getElementById('typing');
+    var timers = [];
+    function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
+    /* hide name label when same sender repeats */
+    msgs.forEach(function(m,i){
+      var prev = msgs[i-1];
+      if (m.classList.contains('them') && prev && prev.classList.contains('them') && prev.dataset.name === m.dataset.name) m.classList.add('same');
+    });
+    function resetChat(){
+      timers.forEach(clearTimeout); timers = [];
+      msgs.forEach(function(m){ m.classList.remove('in'); m.hidden = true; });
+      typing.hidden = true; typing.classList.remove('on'); list.classList.remove('pad');
+      if (timer) { stopTick(); timer.classList.remove('stop'); timer.querySelector('span').textContent = 'Сергей читает файл'; tb.textContent = '0:00'; }
+    }
+    function runChat(){
+      resetChat();
+      if (reduce) { msgs.forEach(function(m){ m.hidden=false; m.classList.add('in'); }); return; }
+      var t = 200;
+      msgs.forEach(function(m){
+        var wait = +m.dataset.wait || 600, type = +m.dataset.type || 0;
+        t += wait;
+        if (type) {
+          later(function(){ typing.hidden=false; list.classList.add('pad'); requestAnimationFrame(function(){ typing.classList.add('on'); }); }, t);
+          t += type;
+          later(function(){ typing.classList.remove('on'); typing.hidden=true; list.classList.remove('pad'); }, t);
+        }
+        later(function(){ m.hidden=false; requestAnimationFrame(function(){ m.classList.add('in'); }); }, t + 40);
+        if (m.dataset.timer === 'start') later(startTimer, t + 40);
+        if (m.dataset.timer === 'stop') later(stopTimer, t + 40);
+      });
+    }
+    /* stopwatch: story seconds */
+    var timer = document.getElementById('timer'), tb = timer && timer.querySelector('b'), tick = null, secs = 0;
+    function fmt(s){ return Math.floor(s/60) + ':' + ('0' + (s%60)).slice(-2); }
+    function startTimer(){ stopTick(); secs = 0; timer.classList.remove('stop'); tb.textContent = fmt(0); tick = setInterval(function(){ secs++; tb.textContent = fmt(secs); }, 300); }
+    function stopTimer(){ stopTick(); timer.classList.add('stop'); timer.querySelector('span').textContent = 'Закрыл файл'; }
+    function stopTick(){ if (tick) { clearInterval(tick); tick = null; } }
+    document.getElementById('replay').addEventListener('click', runChat);
+    if (reduce || !('IntersectionObserver' in window)) { runChat(); }
+    else {
+      var cio = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ runChat(); cio.disconnect(); } }); }, { threshold: 0.35 });
+      cio.observe(chat);
+    }
+  }
+
+  /* readers: segmented control */
+  var box = document.getElementById('readers');
+  if (box) {
+    var tabs = box.querySelectorAll('[role="tab"]');
+    var panes = box.querySelectorAll('.pane');
+    var thumb = box.querySelector('.thumb');
+    function play(pane){
+      var msgs = pane.querySelectorAll('.msg');
+      msgs.forEach(function(m){ m.classList.remove('in'); });
+      void pane.offsetWidth;
+      msgs.forEach(function(m){ m.classList.add('in'); });
+    }
+    function select(i){
+      tabs.forEach(function(b,j){ b.setAttribute('aria-selected', j===i ? 'true' : 'false'); });
+      thumb.style.transform = 'translateX(' + (i*100) + '%)';
+      panes.forEach(function(p,j){ p.hidden = j!==i; if (j===i) play(p); });
+    }
+    tabs.forEach(function(b){ b.addEventListener('click', function(){ select(+b.dataset.i); }); });
+    box.addEventListener('keydown', function(e){
+      if (e.key!=='ArrowRight' && e.key!=='ArrowLeft') return;
+      var cur = [].findIndex.call(tabs, function(b){ return b.getAttribute('aria-selected')==='true'; });
+      var n = (cur + (e.key==='ArrowRight'?1:-1) + tabs.length) % tabs.length;
+      select(n); tabs[n].focus();
+    });
+    if (reduce || !('IntersectionObserver' in window)) { play(panes[0]); }
+    else {
+      var rio = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ play(panes[0]); rio.disconnect(); } }); }, { threshold: 0.2 });
+      rio.observe(box);
+    }
+  }
+
+  /* pill nav: show after hero, highlight current */
+  var nav = document.getElementById('nav');
+  if (nav) {
+    var links = nav.querySelectorAll('a');
+    var secs = [].map.call(links, function(a){ return document.querySelector(a.getAttribute('href')); });
+    var hero = document.querySelector('.hero');
+    function onScroll(){
+      var y = window.scrollY + 120;
+      nav.classList.toggle('show', window.scrollY > (hero ? hero.offsetTop + hero.offsetHeight * 0.6 : 400));
+      var cur = -1;
+      secs.forEach(function(s,i){ if (s && s.offsetTop <= y) cur = i; });
+      links.forEach(function(a,i){ a.classList.toggle('on', i===cur); });
+    }
+    window.addEventListener('scroll', onScroll, { passive:true }); onScroll();
+  }
+
+  /* find in source */
+  document.querySelectorAll('.findsrc').forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var det = document.querySelector('#s-source details'); if (det) det.open = true;
+      var el = document.getElementById(a.dataset.src); if (!el) return;
+      el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+      el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+    });
+  });
+
+  /* assembled page */
+  var doc = document.getElementById('doc'), asm = document.getElementById('assemble');
+  if (doc && asm) {
+    function openDoc(){ doc.classList.add('open'); document.getElementById('dlGroup').hidden = false; }
+    asm.addEventListener('click', function(e){ e.stopPropagation(); openDoc(); });
+    document.getElementById('docBody').addEventListener('click', function(){ if (!doc.classList.contains('open')) openDoc(); });
+    function docHtml(){
+      var p = document.getElementById('docp').cloneNode(true);
+      p.querySelectorAll('.ph').forEach(function(s){ s.replaceWith(document.createTextNode(s.textContent)); });
+      return p.innerHTML;
+    }
+    /* real .docx: minimal WordprocessingML zipped with JSZip */
+    function xml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function run(text, o){
+      o = o || {};
+      var rpr = '<w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri"/>' + (o.b?'<w:b/>':'') + (o.color?'<w:color w:val="'+o.color+'"/>':'') + '<w:sz w:val="'+((o.pt||11)*2)+'"/>';
+      return '<w:r><w:rPr>'+rpr+'</w:rPr><w:t xml:space="preserve">'+xml(text)+'</w:t></w:r>';
+    }
+    function para(text, o){
+      o = o || {};
+      return '<w:p><w:pPr><w:spacing w:before="'+(o.before||0)+'" w:after="'+(o.after==null?120:o.after)+'" w:line="300" w:lineRule="auto"/></w:pPr>'+run(text,o)+'</w:p>';
+    }
+    function buildDocx(){
+      var body = '';
+      function section(sec){
+        [].forEach.call(sec.children, function(el){
+          var txt = el.textContent.replace(/\s+/g,' ').trim(); if (!txt) return;
+          if (el.classList.contains('doc-kicker')) body += para(txt,{pt:9.5,color:'6E6E73',after:60});
+          else if (el.classList.contains('doc-title')) body += para(txt,{pt:20,b:true,after:60});
+          else if (el.classList.contains('doc-sub')) body += para(txt,{pt:9.5,color:'6E6E73',after:200});
+          else if (el.tagName==='H4') body += para(txt,{pt:12.5,b:true,before:280,after:60});
+          else body += para(txt,{pt:11});
+        });
+      }
+      [].forEach.call(document.getElementById('docp').children, function(el){
+        if (el.classList.contains('mail-bar')) { return; }
+        if (el.classList.contains('doc-head')) {
+          var fr = el.querySelector('.mfrom'), dt = el.querySelector('.mdate'), to = el.querySelector('.mto');
+          body += para(fr.textContent.trim(),{pt:14,b:true,color:'0071E3',after:0});
+          body += para(to.textContent.replace(/\s+/g,' ').trim() + '. ' + dt.textContent.trim(),{pt:9.5,color:'6E6E73',after:120});
+        } else if (el.classList.contains('msubj')) {
+          body += para(el.textContent.trim(),{pt:13,b:true,after:320});
+        } else if (el.classList.contains('doc-body')) {
+          [].forEach.call(el.children, section);
+        } else if (el.classList.contains('doc-foot')) {
+          body += para(el.textContent.replace(/\s+/g,' ').trim(),{pt:9,color:'6E6E73',before:480,after:0});
+        } else if (el.classList.contains('ds')) {
+          section(el);
+        }
+      });
+      var docXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+body+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1418" w:right="1418" w:bottom="1418" w:left="1418" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>';
+      var zip = new JSZip();
+      zip.file('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+      zip.file('_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+      zip.file('word/document.xml', docXml);
+      return zip.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    }
+    var note = document.getElementById('dlNote');
+    function say(msg){ if (note) note.textContent = msg; }
+    document.getElementById('dlWord').addEventListener('click', function(){
+      if (!window.JSZip) { say('Библиотека для Word не загрузилась'); return; }
+      var name = 'КП СтройМаркет, первая страница.docx';
+      buildDocx().then(function(blob){
+        var viaClaude = (window.claude && typeof claude.use === 'function') ? claude.use('downloads') : Promise.resolve(null);
+        return viaClaude.then(function(dl){
+          if (dl) {
+            return dl.save({ filename: name, data: blob }).then(function(){ say('Сохранено'); }).catch(function(err){
+              var c = err && err.code;
+              if (c === 'declined') say('Отменено'); else if (c === 'rate_limited') say('Подождите секунду и нажмите еще раз'); else say('Здесь сохранить нельзя. В файле отчета кнопка работает');
+            });
+          }
+          var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+          document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 800);
+        });
+      });
+    });
+    document.getElementById('dlPdf').addEventListener('click', function(){
+      var host = document.getElementById('print-host');
+      if (!host) { host = document.createElement('div'); host.id = 'print-host'; document.body.appendChild(host); }
+      host.innerHTML = '<style>#print-host .mail-bar{display:none}#print-host .msubj{font-size:14pt;font-weight:600;margin:6pt 0 14pt}#print-host .doc-head{display:flex;justify-content:space-between;border-bottom:1px solid #ddd;padding-bottom:10pt;margin-bottom:16pt}#print-host .mav{display:inline-block;width:26pt;height:26pt;border-radius:50%;background:#0071E3;color:#fff;font-weight:600;font-size:9pt;text-align:center;line-height:26pt;margin-right:8pt}#print-host .mhd{flex:1}#print-host .mrow{display:flex;justify-content:space-between}#print-host .mfrom{font-size:11pt}#print-host .mdate,#print-host .mto{color:#666;font-size:9pt}#print-host .msubj{font-size:10pt}#print-host .doc-kicker,#print-host .doc-sub{color:#666;font-size:9.5pt}#print-host h3{font-size:18pt;margin:4pt 0}#print-host h4{font-size:12pt;margin:14pt 0 4pt}#print-host p{margin:0}#print-host .doc-foot{margin-top:24pt;padding-top:8pt;border-top:1px solid #ddd;color:#666;font-size:9pt}</style><div style="font-family:-apple-system,Helvetica,Arial,sans-serif;max-width:720px;margin:0 auto;font-size:11.5pt;line-height:1.5">' + docHtml() + '</div>';
+      document.body.classList.add('print-doc');
+      var done = function(){ document.body.classList.remove('print-doc'); window.removeEventListener('afterprint', done); };
+      window.addEventListener('afterprint', done);
+      window.print();
+      setTimeout(done, 2000);
+    });
+  }
+
+  /* table of contents: tick sections you have scrolled past */
+  var tocItems = document.querySelectorAll('.note-list li[data-sec]');
+  if (tocItems.length) {
+    function tocScroll(){
+      var mid = window.innerHeight * 0.45;
+      tocItems.forEach(function(li){
+        var s = document.getElementById(li.dataset.sec); if (!s) return;
+        li.classList.toggle('done', s.getBoundingClientRect().bottom < mid);
+      });
+    }
+    window.addEventListener('scroll', tocScroll, { passive:true }); tocScroll();
+  }
+
+  /* note date: exact Moscow time at render */
+  var nd = document.getElementById('noteDate');
+  if (nd && window.Intl) {
+    try {
+      var d = new Date();
+      var day = new Intl.DateTimeFormat('ru-RU', { timeZone:'Europe/Moscow', day:'numeric', month:'long', year:'numeric' }).format(d).replace(/\s*г\.?$/, '');
+      var tm = new Intl.DateTimeFormat('ru-RU', { timeZone:'Europe/Moscow', hour:'2-digit', minute:'2-digit' }).format(d);
+      nd.textContent = day + ', ' + tm + ' МСК';
+    } catch (e) {}
+  }
+
+  /* lock screen: notifications stack at the bottom, screen never grows */
+  var lock = document.getElementById('lock'), narea = document.getElementById('nstack'), nhint = document.getElementById('nhint');
+  var ltimers = [], nopen = false, arrived = 0;
+  function layoutStack(){
+    var cards = narea.querySelectorAll('.ncard');
+    var h = 0; cards.forEach(function(c){ h = Math.max(h, c.offsetHeight); });
+    narea.style.height = (h + 22) + 'px';
+    cards.forEach(function(c,i){
+      if (i >= arrived) return;
+      var d = arrived - 1 - i;
+      c.style.zIndex = 20 - d;
+      c.style.transform = d===0 ? 'none' : d===1 ? 'translateY(-11px) scale(.95)' : d===2 ? 'translateY(-22px) scale(.9)' : 'translateY(-26px) scale(.86)';
+      c.style.opacity = d > 2 ? 0 : 1;
+    });
+  }
+  function setOpen(on){
+    nopen = on; narea.classList.toggle('open', on);
+    if (on) {
+      narea.querySelectorAll('.ncard').forEach(function(c){ c.style.opacity=''; c.style.transform=''; c.style.zIndex=''; });
+      var tm = document.getElementById('lockTime');
+      narea.style.height = '';
+      narea.style.top = (tm.offsetTop + tm.offsetHeight + 10) + 'px';
+      requestAnimationFrame(function(){ narea.scrollTop = narea.scrollHeight; });
+    } else { narea.style.top = ''; layoutStack(); }
+  }
+  function runLock(){
+    if (!lock) return;
+    ltimers.forEach(clearTimeout); ltimers = []; arrived = 0;
+    narea.classList.remove('open'); nopen = false; nhint.hidden = true;
+    var cards = narea.querySelectorAll('.ncard');
+    cards.forEach(function(c){ c.classList.remove('in'); c.style.transform=''; c.style.opacity=''; c.style.zIndex=''; });
+    if (reduce) { arrived = cards.length; setOpen(true); return; }
+    cards.forEach(function(c,i){
+      ltimers.push(setTimeout(function(){ arrived = i + 1; c.classList.add('in'); layoutStack(); if (i === cards.length - 1) nhint.hidden = false; }, 500 + i*700));
+    });
+  }
+  if (lock) {
+    lock.addEventListener('click', function(){ if (arrived) setOpen(!nopen); });
+    narea.addEventListener('click', function(e){ if (nopen) e.stopPropagation(); });
+    window.addEventListener('resize', function(){ if (!nopen && arrived) layoutStack(); });
+    var lt = document.getElementById('lockTime');
+    try {
+      var now = new Date();
+      lt.textContent = new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'}).format(now);
+      var ld = new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',weekday:'long',day:'numeric',month:'long'}).format(now);
+      document.getElementById('lockDate').textContent = ld.charAt(0).toUpperCase() + ld.slice(1);
+    } catch(e){}
+    if (reduce || !('IntersectionObserver' in window)) runLock();
+    else { var lio = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ runLock(); lio.disconnect(); } }); }, { threshold: 0.3 }); lio.observe(lock); }
+  }
+
+  /* flashlight: glow behind the phone. camera: live preview on the screen */
+  var torch = document.getElementById('torch'), camBtn = document.getElementById('cam'), camLayer = document.getElementById('camlayer'), camVideo = document.getElementById('camvideo'), camClose = document.getElementById('camclose'), toast = document.getElementById('lockToast');
+  var camStream = null, toastT = null;
+  function showToast(msg){ if (!toast) return; toast.textContent = msg; toast.hidden = false; clearTimeout(toastT); toastT = setTimeout(function(){ toast.hidden = true; }, 2400); }
+  var pw = document.getElementById('phoneWrap');
+  if (torch) torch.addEventListener('click', function(e){ e.stopPropagation(); var on = !pw.classList.contains('lit'); pw.classList.toggle('lit', on); torch.classList.toggle('on', on); });
+  function stopCam(){ if (camStream) { camStream.getTracks().forEach(function(tr){ tr.stop(); }); camStream = null; } camVideo.srcObject = null; camLayer.hidden = true; camBtn.classList.remove('on'); }
+  if (camBtn) camBtn.addEventListener('click', function(e){
+    e.stopPropagation();
+    if (!camLayer.hidden) { stopCam(); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showToast('Камера недоступна в этом окне'); return; }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }).then(function(s){
+      camStream = s; camVideo.srcObject = s; camLayer.hidden = false; camBtn.classList.add('on');
+    }).catch(function(){ showToast('Камера недоступна в этом окне'); });
+  });
+  if (camClose) camClose.addEventListener('click', function(e){ e.stopPropagation(); stopCam(); });
+  if (camLayer) camLayer.addEventListener('click', function(e){ e.stopPropagation(); });
+  window.addEventListener('pagehide', stopCam);
+
+  /* method: sticky step indicator follows the scrolled step */
+  var msticky = document.getElementById('msticky'), msteps = document.querySelectorAll('.mstep');
+  if (msticky && msteps.length && 'IntersectionObserver' in window) {
+    var mnum = document.getElementById('mnum'), mtitle = document.getElementById('mtitle'), msub = document.getElementById('msub'), mdots = document.getElementById('mdots').children;
+    var cur = 0, swapping = false;
+    function setStep(i){
+      if (i === cur) return; cur = i;
+      var s = msteps[i];
+      var apply = function(){ mnum.textContent = s.dataset.n; mtitle.textContent = s.dataset.title; msub.textContent = s.dataset.sub; [].forEach.call(mdots, function(d,j){ d.classList.toggle('on', j===i); }); };
+      if (reduce) { apply(); return; }
+      msticky.classList.add('swap');
+      setTimeout(function(){ apply(); msticky.classList.remove('swap'); }, 220);
+    }
+    var mio = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if (e.isIntersecting) setStep([].indexOf.call(msteps, e.target)); });
+    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+    msteps.forEach(function(s){ mio.observe(s); });
+  }
+
+  /* one-hour timer */
+  var hour = document.getElementById('hour');
+  if (hour) {
+    var rows = hour.querySelectorAll('.plan li'), prog = document.getElementById('prog'), tleft = document.getElementById('tleft'), tlabel = document.getElementById('tlabel');
+    var startBtn = document.getElementById('tstart'), cancelBtn = document.getElementById('tcancel');
+    var durs = [].map.call(rows, function(r){ return (+r.dataset.min) * 60; });
+    var total = durs.reduce(function(a,b){ return a+b; }, 0), C = 741.42;
+    var elapsed = 0, running = false, tick = null;
+    function fmt(s){ s = Math.max(0, Math.round(s)); return Math.floor(s/60) + ':' + ('0' + (s%60)).slice(-2); }
+    function render(){
+      var p = elapsed / total;
+      prog.setAttribute('stroke-dasharray', (C*p).toFixed(2) + ' ' + C);
+      tleft.textContent = fmt(total - elapsed);
+      var acc = 0, cur = -1;
+      rows.forEach(function(r,i){
+        var end = acc + durs[i];
+        r.classList.toggle('done', elapsed >= end && (running || elapsed > 0));
+        var isCur = elapsed >= acc && elapsed < end && (running || elapsed > 0);
+        r.classList.toggle('cur', isCur); if (isCur) cur = i;
+        acc = end;
+      });
+      if (elapsed >= total) { tlabel.textContent = 'Час прошел. КП готово к отправке'; rows.forEach(function(r){ r.classList.add('done'); r.classList.remove('cur'); }); }
+      else if (cur >= 0) { var a = 0; for (var k=0;k<cur;k++) a += durs[k]; tlabel.textContent = 'Правка ' + (cur+1) + ' из ' + rows.length + ', еще ' + fmt(a + durs[cur] - elapsed); }
+      else tlabel.textContent = 'Пять правок, один час';
+    }
+    function setRunning(on){
+      running = on; startBtn.textContent = on ? 'Пауза' : 'Старт';
+      startBtn.classList.toggle('pause', on); startBtn.classList.toggle('start', !on);
+      clearInterval(tick); if (on) tick = setInterval(function(){ elapsed++; if (elapsed >= total) { elapsed = total; setRunning(false); } render(); }, 1000);
+    }
+    startBtn.addEventListener('click', function(){ if (elapsed >= total) { elapsed = 0; } setRunning(!running); render(); });
+    cancelBtn.addEventListener('click', function(){ setRunning(false); elapsed = 0; render(); });
+    render();
+  }
+
+  /* blocks: expand/collapse */
+  document.querySelectorAll('.block .brow').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var b = btn.closest('.block'), on = !b.classList.contains('open');
+      b.classList.toggle('open', on); btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+    });
+  });
+
+  /* voice memo: read-along, like the Voice Memos app */
+  var memo = document.getElementById('memo');
+  if (memo) {
+    var wave = document.getElementById('wave'), mq = document.getElementById('memoQ'), mt = document.getElementById('memoTime'), ml = document.getElementById('memoLeft'), mp = document.getElementById('memoPlay'), ph = document.getElementById('playhead');
+    var seed = 7; function rnd(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    for (var wi = 0; wi < 96; wi++) { var bar = document.createElement('i'); bar.style.setProperty('--h', Math.round(12 + Math.pow(rnd(),1.4)*80) + '%'); bar.style.setProperty('--dl', (rnd()*0.8).toFixed(2) + 's'); wave.appendChild(bar); }
+    var bars = wave.querySelectorAll('i'), wordsEl = mq.querySelectorAll('span'), DUR = 14000, raf = null, t0 = 0, pos = 0, playing = false;
+    function fmtm(ms){ var s = Math.floor(ms/1000); return Math.floor(s/60) + ':' + ('0' + (s%60)).slice(-2); }
+    function paint(el){
+      var p = Math.max(0, Math.min(1, el / DUR));
+      bars.forEach(function(b,i){ b.classList.toggle('on', i / bars.length <= p); });
+      wordsEl.forEach(function(w,i){ w.classList.toggle('said', i / wordsEl.length <= p); });
+      var w = wave.clientWidth - 20; ph.style.transform = 'translateX(' + (w * p) + 'px)';
+      mt.textContent = fmtm(el); ml.textContent = '-' + fmtm(DUR - el);
+    }
+    function frame(now){ pos = Math.min(DUR, now - t0); paint(pos); if (pos < DUR) raf = requestAnimationFrame(frame); else { stop(); pos = 0; } }
+    function start(){ playing = true; memo.classList.add('playing','started'); t0 = performance.now() - pos; raf = requestAnimationFrame(frame); }
+    function stop(){ playing = false; memo.classList.remove('playing'); cancelAnimationFrame(raf); }
+    mp.addEventListener('click', function(){
+      if (reduce) { memo.classList.add('started'); pos = DUR; paint(DUR); return; }
+      if (playing) stop(); else start();
+    });
+    function seek(d){ pos = Math.max(0, Math.min(DUR, pos + d)); memo.classList.add('started'); if (playing) t0 = performance.now() - pos; paint(pos); }
+    document.getElementById('memoBack').addEventListener('click', function(){ seek(-5000); });
+    document.getElementById('memoFwd').addEventListener('click', function(){ seek(5000); });
+    var ww = document.querySelector('.wave-wrap'), scrubbing = false;
+    function scrubTo(ev){ var r = ww.getBoundingClientRect(); var x = Math.max(10, Math.min(r.width - 10, ev.clientX - r.left)); pos = ((x - 10) / (r.width - 20)) * DUR; memo.classList.add('started'); if (playing) t0 = performance.now() - pos; paint(pos); }
+    ww.addEventListener('pointerdown', function(ev){ scrubbing = true; ww.setPointerCapture(ev.pointerId); scrubTo(ev); });
+    ww.addEventListener('pointermove', function(ev){ if (scrubbing) scrubTo(ev); });
+    ww.addEventListener('pointerup', function(){ scrubbing = false; });
+    ww.addEventListener('pointercancel', function(){ scrubbing = false; });
+    try { document.getElementById('memoDate').textContent = new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',day:'numeric',month:'long',year:'numeric'}).format(new Date()).replace(/\s*г\.?$/,'') + ', ' + new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'}).format(new Date()); } catch(e){}
+    window.addEventListener('resize', function(){ paint(pos); });
+    paint(0);
+  }
+
+  /* before/after toggles inside blocks */
+  document.querySelectorAll('.ba').forEach(function(ba){
+    var tabs = ba.querySelectorAll('[role="tab"]'), thumb = ba.querySelector('.thumb');
+    tabs.forEach(function(b,i){ b.addEventListener('click', function(){
+      tabs.forEach(function(x,j){ x.setAttribute('aria-selected', j===i?'true':'false'); });
+      thumb.style.transform = 'translateX(' + (i*100) + '%)';
+      ba.querySelector('.ba-text .was').hidden = b.dataset.v !== 'was';
+      ba.querySelector('.ba-text .now').hidden = b.dataset.v !== 'now';
+    }); });
+  });
+})();
+</script>
