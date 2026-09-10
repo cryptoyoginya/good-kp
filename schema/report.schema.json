@@ -1,0 +1,752 @@
+{
+ "$defs": {
+  "Block": {
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "maximum": 6,
+     "minimum": 1,
+     "title": "Id",
+     "type": "integer"
+    },
+    "title": {
+     "title": "Title",
+     "type": "string"
+    },
+    "summary": {
+     "maxLength": 60,
+     "title": "Summary",
+     "type": "string"
+    },
+    "state": {
+     "enum": [
+      "ok",
+      "weak",
+      "crit"
+     ],
+     "title": "State",
+     "type": "string"
+    },
+    "quote": {
+     "title": "Quote",
+     "type": "string"
+    },
+    "quote_src": {
+     "anyOf": [
+      {
+       "pattern": "^src-\\d+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Quote Src"
+    },
+    "why": {
+     "title": "Why",
+     "type": "string"
+    },
+    "do": {
+     "title": "Do",
+     "type": "string"
+    },
+    "was": {
+     "title": "Was",
+     "type": "string"
+    },
+    "now": {
+     "title": "Now",
+     "type": "string"
+    }
+   },
+   "required": [
+    "id",
+    "title",
+    "summary",
+    "state",
+    "quote",
+    "why",
+    "do",
+    "was",
+    "now"
+   ],
+   "title": "Block",
+   "type": "object"
+  },
+  "ChatFile": {
+   "additionalProperties": false,
+   "properties": {
+    "name": {
+     "title": "Name",
+     "type": "string"
+    },
+    "size": {
+     "title": "Size",
+     "type": "string"
+    }
+   },
+   "required": [
+    "name",
+    "size"
+   ],
+   "title": "ChatFile",
+   "type": "object"
+  },
+  "ChatMsg": {
+   "additionalProperties": false,
+   "properties": {
+    "side": {
+     "enum": [
+      "me",
+      "them"
+     ],
+     "title": "Side",
+     "type": "string"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "text": {
+     "default": "",
+     "title": "Text",
+     "type": "string"
+    },
+    "file": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/ChatFile"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "status": {
+     "anyOf": [
+      {
+       "enum": [
+        "Прочитано",
+        "Доставлено"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Status"
+    },
+    "timer": {
+     "anyOf": [
+      {
+       "enum": [
+        "start",
+        "stop"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Timer"
+    }
+   },
+   "required": [
+    "side"
+   ],
+   "title": "ChatMsg",
+   "type": "object"
+  },
+  "FeedItem": {
+   "additionalProperties": false,
+   "properties": {
+    "step": {
+     "enum": [
+      "pre",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+     ],
+     "title": "Step",
+     "type": "string"
+    },
+    "text": {
+     "title": "Text",
+     "type": "string"
+    },
+    "state": {
+     "enum": [
+      "ok",
+      "drop",
+      "off"
+     ],
+     "title": "State",
+     "type": "string"
+    }
+   },
+   "required": [
+    "step",
+    "text",
+    "state"
+   ],
+   "title": "FeedItem",
+   "type": "object"
+  },
+  "FixedPage": {
+   "additionalProperties": false,
+   "properties": {
+    "subject": {
+     "title": "Subject",
+     "type": "string"
+    },
+    "from_initials": {
+     "maxLength": 3,
+     "title": "From Initials",
+     "type": "string"
+    },
+    "sections": {
+     "items": {
+      "$ref": "#/$defs/Section"
+     },
+     "maxItems": 6,
+     "minItems": 6,
+     "title": "Sections",
+     "type": "array"
+    }
+   },
+   "required": [
+    "subject",
+    "from_initials",
+    "sections"
+   ],
+   "title": "FixedPage",
+   "type": "object"
+  },
+  "Flag": {
+   "additionalProperties": false,
+   "properties": {
+    "from": {
+     "title": "From",
+     "type": "string"
+    },
+    "title": {
+     "maxLength": 60,
+     "title": "Title",
+     "type": "string"
+    },
+    "text": {
+     "title": "Text",
+     "type": "string"
+    }
+   },
+   "required": [
+    "from",
+    "title",
+    "text"
+   ],
+   "title": "Flag",
+   "type": "object"
+  },
+  "Hold": {
+   "additionalProperties": false,
+   "properties": {
+    "title": {
+     "title": "Title",
+     "type": "string"
+    },
+    "text": {
+     "title": "Text",
+     "type": "string"
+    }
+   },
+   "required": [
+    "title",
+    "text"
+   ],
+   "title": "Hold",
+   "type": "object"
+  },
+  "KV": {
+   "additionalProperties": false,
+   "properties": {
+    "k": {
+     "title": "K",
+     "type": "string"
+    },
+    "v": {
+     "title": "V",
+     "type": "string"
+    }
+   },
+   "required": [
+    "k",
+    "v"
+   ],
+   "title": "KV",
+   "type": "object"
+  },
+  "Meta": {
+   "additionalProperties": false,
+   "properties": {
+    "kp_number": {
+     "title": "Kp Number",
+     "type": "string"
+    },
+    "kp_date": {
+     "title": "Kp Date",
+     "type": "string"
+    },
+    "vendor": {
+     "title": "Vendor",
+     "type": "string"
+    },
+    "client": {
+     "title": "Client",
+     "type": "string"
+    },
+    "run_date": {
+     "title": "Run Date",
+     "type": "string"
+    },
+    "title": {
+     "maxLength": 60,
+     "title": "Title",
+     "type": "string"
+    }
+   },
+   "required": [
+    "kp_number",
+    "kp_date",
+    "vendor",
+    "client",
+    "run_date",
+    "title"
+   ],
+   "title": "Meta",
+   "type": "object"
+  },
+  "PlanStep": {
+   "additionalProperties": false,
+   "properties": {
+    "title": {
+     "title": "Title",
+     "type": "string"
+    },
+    "text": {
+     "title": "Text",
+     "type": "string"
+    },
+    "minutes": {
+     "maximum": 40,
+     "minimum": 1,
+     "title": "Minutes",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "title",
+    "text",
+    "minutes"
+   ],
+   "title": "PlanStep",
+   "type": "object"
+  },
+  "Reader": {
+   "additionalProperties": false,
+   "properties": {
+    "name": {
+     "title": "Name",
+     "type": "string"
+    },
+    "role": {
+     "title": "Role",
+     "type": "string"
+    },
+    "kind": {
+     "enum": [
+      "decider",
+      "champion",
+      "executor"
+     ],
+     "title": "Kind",
+     "type": "string"
+    },
+    "matters": {
+     "title": "Matters",
+     "type": "string"
+    },
+    "reads": {
+     "title": "Reads",
+     "type": "string"
+    },
+    "outcome": {
+     "title": "Outcome",
+     "type": "string"
+    },
+    "feed": {
+     "items": {
+      "$ref": "#/$defs/FeedItem"
+     },
+     "maxItems": 7,
+     "minItems": 6,
+     "title": "Feed",
+     "type": "array"
+    }
+   },
+   "required": [
+    "name",
+    "role",
+    "kind",
+    "matters",
+    "reads",
+    "outcome",
+    "feed"
+   ],
+   "title": "Reader",
+   "type": "object"
+  },
+  "Refusal": {
+   "additionalProperties": false,
+   "properties": {
+    "reason": {
+     "title": "Reason",
+     "type": "string"
+    },
+    "hint": {
+     "title": "Hint",
+     "type": "string"
+    }
+   },
+   "required": [
+    "reason",
+    "hint"
+   ],
+   "title": "Refusal",
+   "type": "object"
+  },
+  "Section": {
+   "additionalProperties": false,
+   "properties": {
+    "title": {
+     "title": "Title",
+     "type": "string"
+    },
+    "text": {
+     "title": "Text",
+     "type": "string"
+    }
+   },
+   "required": [
+    "title",
+    "text"
+   ],
+   "title": "Section",
+   "type": "object"
+  },
+  "SourceBlock": {
+   "additionalProperties": false,
+   "description": "Один блок исходного КП: заголовок, абзац, примечание, список или таблица.",
+   "properties": {
+    "id": {
+     "pattern": "^src-\\d+$",
+     "title": "Id",
+     "type": "string"
+    },
+    "kind": {
+     "enum": [
+      "h",
+      "p",
+      "note",
+      "list",
+      "table"
+     ],
+     "title": "Kind",
+     "type": "string"
+    },
+    "text": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Text"
+    },
+    "items": {
+     "anyOf": [
+      {
+       "items": {
+        "type": "string"
+       },
+       "type": "array"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Items"
+    },
+    "rows": {
+     "anyOf": [
+      {
+       "items": {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       "type": "array"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Rows"
+    }
+   },
+   "required": [
+    "id",
+    "kind"
+   ],
+   "title": "SourceBlock",
+   "type": "object"
+  },
+  "Verdict": {
+   "additionalProperties": false,
+   "properties": {
+    "speaker": {
+     "title": "Speaker",
+     "type": "string"
+    },
+    "text": {
+     "title": "Text",
+     "type": "string"
+    }
+   },
+   "required": [
+    "speaker",
+    "text"
+   ],
+   "title": "Verdict",
+   "type": "object"
+  }
+ },
+ "additionalProperties": false,
+ "properties": {
+  "version": {
+   "title": "Version",
+   "type": "string"
+  },
+  "methodology_version": {
+   "title": "Methodology Version",
+   "type": "string"
+  },
+  "refusal": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/Refusal"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null
+  },
+  "meta": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/Meta"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null
+  },
+  "intake": {
+   "anyOf": [
+    {
+     "items": {
+      "$ref": "#/$defs/KV"
+     },
+     "maxItems": 6,
+     "minItems": 6,
+     "type": "array"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Intake"
+  },
+  "readers": {
+   "anyOf": [
+    {
+     "items": {
+      "$ref": "#/$defs/Reader"
+     },
+     "maxItems": 3,
+     "minItems": 3,
+     "type": "array"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Readers"
+  },
+  "chat": {
+   "anyOf": [
+    {
+     "items": {
+      "$ref": "#/$defs/ChatMsg"
+     },
+     "maxItems": 14,
+     "minItems": 8,
+     "type": "array"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Chat"
+  },
+  "verdict": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/Verdict"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null
+  },
+  "blocks": {
+   "anyOf": [
+    {
+     "items": {
+      "$ref": "#/$defs/Block"
+     },
+     "maxItems": 6,
+     "minItems": 6,
+     "type": "array"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Blocks"
+  },
+  "flags": {
+   "anyOf": [
+    {
+     "items": {
+      "$ref": "#/$defs/Flag"
+     },
+     "maxItems": 6,
+     "minItems": 4,
+     "type": "array"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Flags"
+  },
+  "holds": {
+   "anyOf": [
+    {
+     "items": {
+      "$ref": "#/$defs/Hold"
+     },
+     "maxItems": 4,
+     "minItems": 2,
+     "type": "array"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Holds"
+  },
+  "fixed_page": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/FixedPage"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null
+  },
+  "plan": {
+   "anyOf": [
+    {
+     "items": {
+      "$ref": "#/$defs/PlanStep"
+     },
+     "maxItems": 6,
+     "minItems": 4,
+     "type": "array"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Plan"
+  },
+  "source": {
+   "anyOf": [
+    {
+     "items": {
+      "$ref": "#/$defs/SourceBlock"
+     },
+     "type": "array"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Source"
+  }
+ },
+ "required": [
+  "version",
+  "methodology_version"
+ ],
+ "title": "Report",
+ "type": "object"
+}
