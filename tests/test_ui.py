@@ -65,3 +65,34 @@ def test_section_text_matches_prototype(page, expected, sec):
 
 def test_no_page_errors(page):
     assert page.errors == []
+
+
+def test_nb_binds_number_and_unit(page):
+    """GK.nb ставит nbsp между числом и единицей и после снятия \\b в юникоде."""
+    result = page.evaluate("() => GK.nb('2,4 млн и 16 недель, 3 500 руб')")
+    assert '2,4\xa0млн' in result
+    assert '16\xa0недель' in result
+    assert '3\xa0500\xa0руб' in result
+    text = page.evaluate("() => document.body.innerText")
+    assert len(re.findall(r'\d\xa0(?:млн|недел|мин|МБ)', text)) >= 10
+
+
+def test_bad_date_falls_back_to_nodata(page, page_html, tmp_path):
+    """Ошибка рендера (битая дата) не должна ронять страницу наполовину отрендеренной."""
+    html = page_html.read_text(encoding="utf-8")
+    target = '"run_date": "2026-09-07T14:24:00+03:00"'
+    assert html.count(target) == 1
+    bad_html = html.replace(target, '"run_date": "не дата"')
+    p = tmp_path / "bad_date.html"
+    p.write_text(bad_html, encoding="utf-8")
+    # переиспользуем браузер модульной страницы: вложенный sync_playwright() внутри
+    # уже работающего цикла событий падает с ошибкой asyncio
+    pg = page.context.browser.new_page()
+    errors = []
+    pg.on("pageerror", lambda e: errors.append(str(e)))
+    pg.goto(p.as_uri())
+    pg.wait_for_timeout(500)
+    has_nodata = pg.evaluate("() => document.body.classList.contains('nodata')")
+    pg.close()
+    assert has_nodata
+    assert errors == []

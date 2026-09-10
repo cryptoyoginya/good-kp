@@ -507,7 +507,7 @@ window.GK = (function(){
     s = esc(s);
     s = s.replace(PREP, function(m, a, w){ return a + w + '\u00a0'; });
     s = s.replace(/\s+(же|бы|ли|б|ж)(?=[\s,.!?»])/g, '\u00a0$1');
-    s = s.replace(/(\d)\s+(?=(?:млн|тыс|руб|₽|%|ч|мин|сек|недел|дн|мес|МБ|КБ|стр)\b)/g, '$1\u00a0');
+    s = s.replace(/(\d)\s+(?=(?:млн|тыс|руб|₽|%|ч|мин|сек|недел|дн|мес|МБ|КБ|стр))/g, '$1\u00a0');
     s = s.replace(/(\d)\s(\d{3})(?!\d)/g, '$1\u00a0$2');
     return s;
   }
@@ -548,11 +548,16 @@ window.GK = (function(){
     var n = d.plan.length;
     return cap(numWord(n)) + ' ' + plural(n, 'правка', 'правки', 'правок') + ', один час';
   }
+  /* подпись остановки таймера: бейдж шага, на котором читатель бросил файл, из данных */
+  function stopLabel(d){
+    var r = d.readers[0], f = r.feed.filter(function(x){ return x.state === 'drop'; })[0];
+    return f && f.badge ? f.badge : 'Закрыл файл';
+  }
   return { esc: esc, nb: nb, ph: ph, h: h, fmtDate: fmtDate, ddmmyyyy: ddmmyyyy,
            dateLong: dateLong, timeShort: timeShort, stamp: stamp, weekDate: weekDate,
            mailDate: mailDate, cap: cap, numWord: numWord, plural: plural, mmss: mmss,
            words: words, clientShort: clientShort, memoSecs: memoSecs, planLabel: planLabel,
-           renderers: {} };
+           stopLabel: stopLabel, renderers: {} };
 })();
 </script>
 <script>
@@ -612,7 +617,7 @@ window.GK = (function(){
         ? '<div class="file"><span class="ico">' + esc(m.file.name.split('.').pop().toUpperCase()) + '</span><span><b>' + nb(m.file.name) + '</b><i>' + nb(m.file.size) + '</i></span></div>'
         : '';
       if (m.text) inner += '<div class="b">' + nb(m.text) + '</div>';
-      if (m.status) inner += '<div class="st">' + m.status + '</div>';
+      if (m.status) inner += '<div class="st">' + esc(m.status) + '</div>';
       return GK.h('div', attrs, inner);
     }).join('');
     return { head: head, msgs: msgs };
@@ -695,7 +700,7 @@ window.GK = (function(){
   var LABEL = { ok: 'Прошло', weak: 'Споткнулся', crit: 'Отвалился' };
   R.blocks = function(d){
     return d.blocks.map(function(b){
-      var src = b.quote_src ? '<a class="findsrc" href="#' + b.quote_src + '" data-src="' + b.quote_src + '">' + nb('Найти в исходном КП') + '</a>' : '';
+      var src = b.quote_src ? '<a class="findsrc" href="#' + esc(b.quote_src) + '" data-src="' + esc(b.quote_src) + '">' + nb('Найти в исходном КП') + '</a>' : '';
       return '<article class="block ' + b.state + ' rv">' +
         '<button class="brow" type="button" aria-expanded="false"><span class="i">' + b.id + '</span>' +
         '<span class="bt"><b>' + nb(b.title) + '</b><span>' + nb(b.summary) + '</span></span>' +
@@ -736,7 +741,7 @@ window.GK = (function(){
   /* исправленная первая страница в виде письма */
   R.doc = function(d){
     var f = d.fixed_page, m = d.meta;
-    var title = f.subject.replace(/^[^.]*\.\s*/, '') || f.subject;
+    var title = f.subject.replace(/^КП\s*№\S+\.\s*/, '');
     var body = f.sections.map(function(s, i){
       return '<div class="ds" style="--i:' + (i + 1) + '"><h4>' + nb(s.title) + '</h4><p>' + ph(s.text) + '</p></div>';
     }).join('');
@@ -829,7 +834,7 @@ window.GK = (function(){
     var d;
     try { d = JSON.parse(txt); } catch (e) { document.body.classList.add('nodata'); console.error('Good КП: JSON не разобран', e); return false; }
     if (d.refusal) { document.body.classList.add('nodata'); console.error('Good КП: отказ', d.refusal.reason); return false; }
-    GK.render(d);
+    try { GK.render(d); } catch (e) { document.body.classList.add('nodata'); console.error('Good КП: рендер упал', e); return false; }
     return true;
   };
 })();
@@ -1090,7 +1095,7 @@ GK.init = function(){
     var timer = document.getElementById('timer'), tb = timer && timer.querySelector('b'), chatTick = null, chatSecs = 0;
     function fmtChat(s){ return Math.floor(s/60) + ':' + ('0' + (s%60)).slice(-2); }
     function startTimer(){ stopTick(); chatSecs = 0; timer.classList.remove('stop'); tb.textContent = fmtChat(0); chatTick = setInterval(function(){ chatSecs++; tb.textContent = fmtChat(chatSecs); }, 300); }
-    function stopTimer(){ stopTick(); timer.classList.add('stop'); timer.querySelector('span').textContent = 'Закрыл файл'; }
+    function stopTimer(){ stopTick(); timer.classList.add('stop'); timer.querySelector('span').textContent = GK.stopLabel(GK.data); }
     function stopTick(){ if (chatTick) { clearInterval(chatTick); chatTick = null; } }
     document.getElementById('replay').addEventListener('click', runChat);
     if (reduce || !('IntersectionObserver' in window)) { runChat(); }
