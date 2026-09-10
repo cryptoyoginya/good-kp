@@ -77,6 +77,15 @@ def test_nb_binds_number_and_unit(page):
     assert len(re.findall(r'\d\xa0(?:млн|недел|мин|МБ)', text)) >= 10
 
 
+def test_nav_highlights_current_section(page):
+    # instant, а не CSS scroll-behavior:smooth (html{scroll-behavior:smooth}) -
+    # иначе прокрутка до дальней секции не успевает завершиться за 400ms
+    page.evaluate("document.querySelector('#s-fixed').scrollIntoView({block: 'start', behavior: 'instant'})")
+    page.wait_for_timeout(400)
+    active = page.evaluate("[...document.querySelectorAll('#nav a')].filter(a => a.classList.contains('cur')).map(a => a.getAttribute('href'))")
+    assert active == ["#s-fixed"]
+
+
 def test_bad_date_falls_back_to_nodata(page, page_html, tmp_path):
     """Ошибка рендера (битая дата) не должна ронять страницу наполовину отрендеренной."""
     html = page_html.read_text(encoding="utf-8")

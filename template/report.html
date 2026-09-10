@@ -362,10 +362,12 @@ details[open] summary::before{transform:rotate(45deg)}
 .pillnav{position:sticky;top:12px;z-index:50;display:flex;gap:2px;justify-content:center;margin:14px auto 0;padding:4px;width:max-content;max-width:calc(100% - 32px);border-radius:999px;background:color-mix(in srgb,var(--card) 72%,transparent);backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px);box-shadow:0 1px 0 rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.08);overflow-x:auto;scrollbar-width:none;opacity:0;transform:translateY(-8px);transition:opacity .35s var(--ease),transform .35s var(--ease)}
 .pillnav::-webkit-scrollbar{display:none}
 .pillnav.show{opacity:1;transform:none}
-.pillnav a{font-size:13.5px;font-weight:500;color:var(--sub);padding:7px 13px;border-radius:999px;white-space:nowrap;transition:background .2s,color .2s}
+.pillnav a{font-size:13.5px;font-weight:500;color:var(--sub);padding:7px 13px;border-radius:999px;white-space:nowrap;transition:background .25s var(--ease),color .25s var(--ease)}
 .pillnav a:hover{text-decoration:none;color:var(--ink)}
-.pillnav a.on{background:var(--ink);color:var(--bg)}
+.pillnav a.cur{background:var(--ink);color:var(--bg)}
+.pillnav{scroll-snap-type:x proximity}
 @media (max-width:640px){.pillnav{justify-content:flex-start}}
+@media (prefers-reduced-motion: reduce){.pillnav a{transition:none}}
 
 /* chat timer */
 .chat-timer{margin-left:auto;text-align:right;line-height:1.15}
@@ -1120,13 +1122,19 @@ GK.init = function(){
     var secs = [].map.call(links, function(a){ return document.querySelector(a.getAttribute('href')); });
     var hero = document.querySelector('.hero');
     function onScroll(){
-      var y = window.scrollY + 120;
       nav.classList.toggle('show', window.scrollY > (hero ? hero.offsetTop + hero.offsetHeight * 0.6 : 400));
-      var cur = -1;
-      secs.forEach(function(s,i){ if (s && s.offsetTop <= y) cur = i; });
-      links.forEach(function(a,i){ a.classList.toggle('on', i===cur); });
     }
     window.addEventListener('scroll', onScroll, { passive:true }); onScroll();
+    var cur = -1;
+    function setCur(i){
+      if (i === cur) return; cur = i;
+      links.forEach(function(a, k){ a.classList.toggle('cur', k === i); });
+      var a = links[i]; if (a && a.scrollIntoView) a.scrollIntoView({ block: 'nearest', inline: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    }
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if (e.isIntersecting) setCur(secs.indexOf(e.target)); });
+    }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+    secs.forEach(function(s){ if (s) io.observe(s); });
   }
 
   /* find in source */
