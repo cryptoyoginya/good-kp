@@ -1,4 +1,4 @@
-<title>Good КП: СтройМаркет</title>
+<title>Good КП</title>
 <style>
 :root{
   --bg:#FBFBFD;--card:#FFFFFF;--card2:#F5F5F7;--line:#E5E5EA;--line2:#D2D2D7;
@@ -154,7 +154,7 @@ section>.wrap>h2{font-size:34px;font-weight:600;line-height:1.1;margin-bottom:22
 
 /* status words */
 .st{font-size:14px;font-weight:600;white-space:nowrap;letter-spacing:-.005em}
-.st.good{color:var(--good)}.st.warn{color:var(--warn)}.st.crit{color:var(--crit)}
+.st.ok{color:var(--good)}.st.weak{color:var(--warn)}.st.crit{color:var(--crit)}
 
 /* readers: segmented control + feed */
 .readers{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:22px 26px 26px}
@@ -195,7 +195,7 @@ section>.wrap>h2{font-size:34px;font-weight:600;line-height:1.1;margin-bottom:22
 .block:not(.open) .brow:hover{background:var(--card2)}
 .block.open .brow{cursor:pointer}
 .brow .i{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#fff}
-.block.good .brow .i{background:var(--good)}.block.warn .brow .i{background:var(--warn)}.block.crit .brow .i{background:var(--crit)}
+.block.ok .brow .i{background:var(--good)}.block.weak .brow .i{background:var(--warn)}.block.crit .brow .i{background:var(--crit)}
 .bt b{display:block;font-size:19px;font-weight:600;letter-spacing:-.015em;line-height:1.2}
 .bt span{display:block;font-size:14.5px;color:var(--sub);margin-top:2px}
 .brow .st{font-size:14.5px}
@@ -489,15 +489,365 @@ footer{margin-top:88px;padding:56px 0 64px;border-top:1px solid var(--line)}
 .sig-handle{margin-top:12px;font-size:14px;color:var(--faint)}
 footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:center}
 @media (prefers-reduced-motion:reduce){.sig-h .heart{animation:none}}
+.nodata-msg{display:none}
+body.nodata main>section,body.nodata .hero,body.nodata header .meta{display:none}
+body.nodata .nodata-msg{display:block;padding:80px 28px;color:var(--ink2)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>document.documentElement.classList.add('js')</script>
 <script type="application/json" id="data"></script>
+<script>
+/* Утилиты рендера: экранирование, типографика, даты, числительные. */
+window.GK = (function(){
+  var PREP = /(^|[\s(«„])((?:[а-яa-z]{1,3}|же|бы|ли|или|как|для|при|под|над|про|без|через|из-за|из-под))\s+/gi;
+  var NUM = ['ни одна', 'одна', 'две', 'три', 'четыре', 'пять', 'шесть'];
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  /* nbsp после коротких слов и предлогов, перед же/бы/ли, между числом и единицей, в разрядах */
+  function nb(s){
+    s = esc(s);
+    s = s.replace(PREP, function(m, a, w){ return a + w + '\u00a0'; });
+    s = s.replace(/\s+(же|бы|ли|б|ж)(?=[\s,.!?»])/g, '\u00a0$1');
+    s = s.replace(/(\d)\s+(?=(?:млн|тыс|руб|₽|%|ч|мин|сек|недел|дн|мес|МБ|КБ|стр)\b)/g, '$1\u00a0');
+    s = s.replace(/(\d)\s(\d{3})(?!\d)/g, '$1\u00a0$2');
+    return s;
+  }
+  /* [плейсхолдер] -> <span class="ph">[плейсхолдер]</span> */
+  function ph(s){ return nb(s).replace(/\[([^\]]+)\]/g, '<span class="ph">[$1]</span>'); }
+  function h(tag, attrs, inner){
+    var a = '';
+    for (var k in attrs || {}) if (attrs[k] != null && attrs[k] !== false) a += ' ' + k + '="' + esc(attrs[k]) + '"';
+    return '<' + tag + a + '>' + (inner == null ? '' : inner) + '</' + tag + '>';
+  }
+  function fmtDate(iso, opts){ return new Intl.DateTimeFormat('ru-RU', Object.assign({ timeZone: 'Europe/Moscow' }, opts)).format(new Date(iso)); }
+  function ddmmyyyy(iso){ return fmtDate(iso, { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+  function dateLong(iso){ return fmtDate(iso, { day: 'numeric', month: 'long', year: 'numeric' }).replace(/\s*г\.?$/, ''); }
+  function timeShort(iso){ return fmtDate(iso, { hour: '2-digit', minute: '2-digit' }); }
+  /* «7 сентября 2026, 14:24» */
+  function stamp(iso){ return dateLong(iso) + ', ' + timeShort(iso); }
+  /* «Понедельник, 7 сентября» */
+  function weekDate(iso){ var s = fmtDate(iso, { weekday: 'long', day: 'numeric', month: 'long' }); return cap(s); }
+  /* «21 авг. 2026 г.» */
+  function mailDate(iso){ return fmtDate(iso, { day: 'numeric', month: 'short', year: 'numeric' }); }
+  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+  function numWord(n){ return NUM[n] != null ? NUM[n] : String(n); }
+  function plural(n, one, few, many){
+    var a = Math.abs(n) % 100, b = a % 10;
+    if (a > 10 && a < 20) return many;
+    if (b > 1 && b < 5) return few;
+    if (b === 1) return one;
+    return many;
+  }
+  function mmss(sec){ sec = Math.max(0, Math.round(sec)); return Math.floor(sec / 60) + ':' + ('0' + (sec % 60)).slice(-2); }
+  /* убирает «ООО» и кавычки из названия клиента */
+  function clientShort(d){ return d.meta.client.replace(/^ООО\s+/, '').replace(/[«»]/g, ''); }
+  /* длина вердикта в секундах: примерно 2,4 слова в секунду */
+  function memoSecs(d){ return Math.max(8, Math.round(words(d.verdict.text).length / 2.4)); }
+  function words(s){ return String(s).trim().split(/\s+/); }
+  /* «Пять правок, один час» */
+  function planLabel(d){
+    var n = d.plan.length;
+    return cap(numWord(n)) + ' ' + plural(n, 'правка', 'правки', 'правок') + ', один час';
+  }
+  return { esc: esc, nb: nb, ph: ph, h: h, fmtDate: fmtDate, ddmmyyyy: ddmmyyyy,
+           dateLong: dateLong, timeShort: timeShort, stamp: stamp, weekDate: weekDate,
+           mailDate: mailDate, cap: cap, numWord: numWord, plural: plural, mmss: mmss,
+           words: words, clientShort: clientShort, memoSecs: memoSecs, planLabel: planLabel,
+           renderers: {} };
+})();
+</script>
+<script>
+/* Рендеры секций: из данных в ту же разметку, что была в прототипе. */
+(function(){
+  var R = GK.renderers, nb = GK.nb, ph = GK.ph, esc = GK.esc;
+
+  var AVATAR = '<svg viewBox="0 0 24 24" width="30" height="30"><circle cx="12" cy="8.5" r="4.2" fill="#fff"/><path d="M4 20.5c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5v.5H4z" fill="#fff"/></svg>';
+  var TG = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg>';
+  var SKIP = '<svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><g%TR% fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16.25 5.64A8.5 8.5 0 1 1 7.75 5.64"/><path d="M4.55 5.64L7.75 5.64L6.15 8.41"/></g><text x="12" y="16.3" text-anchor="middle" font-size="8.6" font-weight="600" fill="currentColor" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif">5</text></svg>';
+  var MEMO_CTL = '<div class="memo-ctl">' +
+    '<button type="button" class="skip" id="memoBack" aria-label="Назад на 5 секунд">' + SKIP.replace('%TR%', '') + '</button>' +
+    '<button class="play" type="button" id="memoPlay" aria-label="Проиграть"><svg class="ic-play" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg><svg class="ic-pause" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg></button>' +
+    '<button type="button" class="skip" id="memoFwd" aria-label="Вперед на 5 секунд">' + SKIP.replace('%TR%', ' transform="translate(24 0) scale(-1 1)"') + '</button></div>';
+  var DOC_CTA = '<div class="doc-cta" id="docCta"><div class="doc-cta-card">' +
+    '<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="var(--accent)"/><path d="M14 2v5h5" fill="#fff" fill-opacity=".55"/><rect x="7.5" y="11" width="9" height="1.6" rx=".8" fill="#fff"/><rect x="7.5" y="14.2" width="9" height="1.6" rx=".8" fill="#fff"/><rect x="7.5" y="17.4" width="6" height="1.6" rx=".8" fill="#fff"/></svg>' +
+    '<b>' + nb('Первая страница собрана') + '</b>' +
+    '<p>' + nb('Шесть исправленных разделов в том порядке, в котором прочитает ваш клиент. Разверните, чтобы прочитать целиком и скачать в Word или PDF.') + '</p>' +
+    '<button class="assemble" type="button" id="assemble">' + nb('Развернуть страницу') + '<svg viewBox="0 0 12 8" width="12" height="8" aria-hidden="true"><path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+    '</div></div>';
+
+  /* шапка */
+  R.header = function(d){
+    var m = d.meta;
+    return '<b>' + nb('КП №' + m.kp_number + ' от ' + GK.ddmmyyyy(m.kp_date)) + '</b><br>' +
+      nb('«' + m.vendor + '» для ' + m.client) + '<br>' +
+      nb('Прогон ' + GK.ddmmyyyy(m.run_date) + ' по методике Вадима Школьного');
+  };
+
+  /* заголовок, лид из счета опор, кнопка повтора */
+  R.hero = function(d){
+    var c = { crit: 0, weak: 0, ok: 0 };
+    d.blocks.forEach(function(b){ c[b.state]++; });
+    var lead = GK.cap(GK.numWord(c.crit)) + ' из шести опор провалены, ' +
+      GK.numWord(c.weak) + ' шатаются, ' + GK.numWord(c.ok) + ' держит.';
+    var champion = d.readers[1], decider = d.readers[0];
+    var p = lead + ' Тому, кто продвигает проект внутри клиента: ' + champion.outcome +
+      ' Тому, кто платит: ' + decider.outcome;
+    return '<h1>' + nb(d.meta.title) + '</h1><p>' + nb(p) + '</p>' +
+      '<button class="replay" type="button" id="replay">' + nb('Проиграть еще раз') + '</button>';
+  };
+
+  /* переписка внутри клиента */
+  R.chat = function(d){
+    var names = [];
+    d.chat.forEach(function(m){ if (m.side === 'them' && m.name && names.indexOf(m.name) < 0) names.push(m.name); });
+    var label = d.readers[0].name + ' читает файл';
+    var head = '<div class="chat-h"><div class="chat-avs">' + names.map(function(n){ return '<span>' + esc(n[0]) + '</span>'; }).join('') + '</div>' +
+      '<div class="chat-t"><b>' + nb('КП от ' + d.meta.vendor) + '</b><span>' + esc(names.join(', ')) + '</span></div>' +
+      '<div class="chat-timer" id="timer" data-label="' + esc(label) + '"><span>' + esc(label) + '</span><b>0:00</b></div></div>';
+    var msgs = d.chat.map(function(m){
+      var attrs = { 'class': 'm ' + m.side, 'data-wait': m.side === 'me' ? 300 + Math.min(m.text.length * 30, 3000) : 500 + Math.min(m.text.length * 12, 1200) };
+      if (m.side === 'them') { attrs['data-name'] = m.name; attrs['data-type'] = 800 + Math.min(m.text.length * 20, 1600); }
+      if (m.timer) attrs['data-timer'] = m.timer;
+      var inner = m.file
+        ? '<div class="file"><span class="ico">' + esc(m.file.name.split('.').pop().toUpperCase()) + '</span><span><b>' + nb(m.file.name) + '</b><i>' + nb(m.file.size) + '</i></span></div>'
+        : '';
+      if (m.text) inner += '<div class="b">' + nb(m.text) + '</div>';
+      if (m.status) inner += '<div class="st">' + m.status + '</div>';
+      return GK.h('div', attrs, inner);
+    }).join('');
+    return { head: head, msgs: msgs };
+  };
+
+  /* оглавление: список статичный, дата и число правок из данных */
+  var TOC = [
+    ['s-intake', 'Вводные', 'что знали о сделке до прогона'],
+    ['s-verdict', 'Вердикт', 'что клиент сказал бы вслух'],
+    ['s-readers', 'Кто читал', 'трое внутри клиента и что подумал каждый'],
+    ['s-blocks', 'Прогон по опорам', 'что не так, что подумали, как переписать'],
+    ['s-flags', 'Флаги и опоры', 'что мешает и что уже держит'],
+    ['s-fixed', 'Исправленная страница', 'собрать первую страницу и скачать'],
+    ['s-plan', 'Что сделать за час', null],
+    ['s-method', 'Методика', 'на чем построен разбор'],
+    ['s-source', 'Исходное КП', 'то, что прогонялось']
+  ];
+  R.toc = function(d){
+    var n = d.plan.length;
+    var moves = GK.numWord(n) + ' ' + GK.plural(n, 'ход', 'хода', 'ходов') + ' по убыванию эффекта';
+    var li = TOC.map(function(it){
+      return '<li data-sec="' + it[0] + '"><a href="#' + it[0] + '"><span class="cb"></span>' +
+        '<span class="tx"><b>' + nb(it[1]) + '</b><span>' + nb(it[2] || moves) + '</span></span></a></li>';
+    }).join('');
+    return '<div class="note-bar"><span class="back">Заметки</span><span class="ok">Готово</span></div>' +
+      '<div class="note-date" id="noteDate">' + esc(GK.stamp(d.meta.run_date)) + ' МСК</div>' +
+      '<h2 class="note-title">' + nb('Что внутри') + '</h2>' +
+      '<ul class="note-list">' + li + '</ul>';
+  };
+
+  /* вводные */
+  R.intake = function(d){
+    return d.intake.map(function(r){
+      return '<div><span class="k">' + nb(r.k) + '</span><span class="v">' + nb(r.v) + '</span></div>';
+    }).join('');
+  };
+
+  /* вердикт: голосовое сообщение с подсветкой слов */
+  R.memo = function(d){
+    var dur = GK.mmss(GK.memoSecs(d));
+    var words = GK.words(d.verdict.text).map(function(w){ return '<span>' + nb(w) + '</span>'; }).join(' ');
+    return '<div class="memo-row"><div class="memo-t"><b>' + nb(d.verdict.speaker) + '</b>' +
+        '<span id="memoDate">' + esc(GK.stamp(d.meta.run_date)) + '</span></div>' +
+        '<span class="memo-dur">' + dur + '</span></div>' +
+      '<div class="wave-wrap"><div class="wave" id="wave" aria-hidden="true"></div><div class="playhead" id="playhead"></div></div>' +
+      '<div class="memo-times"><span id="memoTime">0:00</span><span id="memoLeft">-' + dur + '</span></div>' +
+      MEMO_CTL +
+      '<p class="memo-q" id="memoQ">' + words + '</p>';
+  };
+
+  /* кто читал */
+  var STEP = { pre: 'Сначала цена', '1': '1. Проблема', '2': '2. Цели', '3': '3. Решение',
+               '4': '4. Как сделаем', '5': '5. Почему мы', '6': '6. Почему точно' };
+  var DROP = { decider: ['crit', 'Закрыл файл'], champion: ['crit', 'Отвалилась'], executor: ['weak', 'Споткнулся'] };
+  R.readers = function(d){
+    var tabs = d.readers.map(function(r, i){
+      return '<button role="tab" type="button" aria-selected="' + (i ? 'false' : 'true') + '" data-i="' + i + '">' + esc(r.name) + '</button>';
+    }).join('');
+    var panes = d.readers.map(function(r, i){
+      var feed = r.feed.map(function(f, j){
+        var cls = 'msg' + (f.step === 'pre' ? ' pre' : '') + (f.state === 'drop' ? ' drop' : f.state === 'off' ? ' off' : '');
+        var drop = DROP[r.kind] || DROP.executor;
+        var badge = f.state === 'drop' ? '<span class="st ' + drop[0] + '">' + nb(drop[1]) + '</span>' : '';
+        return '<li class="' + cls + '" style="--i:' + j + '"><span class="step">' + nb(STEP[f.step]) + '</span>' +
+          '<p>' + nb(f.text) + '</p>' + badge + '</li>';
+      }).join('');
+      return '<div class="pane" data-i="' + i + '" role="tabpanel"' + (i ? ' hidden' : '') + '>' +
+        '<div class="portrait"><div class="pc"><span class="pav" aria-hidden="true">' + AVATAR + '</span>' +
+          '<div><h3>' + esc(r.name) + '</h3><div class="who">' + nb(r.role) + '</div></div></div>' +
+        '<div class="ptiles">' +
+          '<div><span class="k">Важно</span><p>' + nb(r.matters) + '</p></div>' +
+          '<div><span class="k">' + nb('Как читает') + '</span><p>' + nb(r.reads) + '</p></div>' +
+          '<div class="pt-final"><span class="k">Итог</span><p>' + nb(r.outcome) + '</p></div>' +
+        '</div></div><ol class="feed">' + feed + '</ol></div>';
+    }).join('');
+    return '<div class="segctl" role="tablist" aria-label="Читатель"><span class="thumb" aria-hidden="true"></span>' + tabs + '</div>' + panes;
+  };
+
+  /* прогон по шести опорам */
+  var LABEL = { ok: 'Прошло', weak: 'Споткнулся', crit: 'Отвалился' };
+  R.blocks = function(d){
+    return d.blocks.map(function(b){
+      var src = b.quote_src ? '<a class="findsrc" href="#' + b.quote_src + '" data-src="' + b.quote_src + '">' + nb('Найти в исходном КП') + '</a>' : '';
+      return '<article class="block ' + b.state + ' rv">' +
+        '<button class="brow" type="button" aria-expanded="false"><span class="i">' + b.id + '</span>' +
+        '<span class="bt"><b>' + nb(b.title) + '</b><span>' + nb(b.summary) + '</span></span>' +
+        '<span class="st ' + b.state + '">' + LABEL[b.state] + '</span><span class="chev" aria-hidden="true"></span></button>' +
+        '<div class="bbody"><div><div class="bx">' +
+          '<div class="bl"><div class="kpq"><span class="kq">' + nb('Из КП') + '</span><p>' + nb(b.quote) + '</p>' + src + '</div>' +
+          '<p class="bwhy">' + nb(b.why) + '</p>' +
+          '<p class="bdo"><b>Что делать.</b> ' + nb(b.do) + '</p></div>' +
+          '<div class="br"><div class="ba">' +
+            '<div class="segctl two" role="tablist" aria-label="Было или стало"><span class="thumb" aria-hidden="true" style="transform:translateX(100%)"></span>' +
+            '<button type="button" role="tab" aria-selected="false" data-v="was">Было</button><button type="button" role="tab" aria-selected="true" data-v="now">Стало</button></div>' +
+            '<div class="ba-text"><p class="was" hidden>' + nb(b.was) + '</p><p class="now">' + ph(b.now) + '</p></div>' +
+          '</div></div>' +
+        '</div></div></div></article>';
+    }).join('');
+  };
+
+  /* уведомления на экране блокировки */
+  R.flags = function(d){
+    var cards = d.flags.map(function(f, i){
+      return '<div class="ncard" data-i="' + i + '"><div class="nh"><span class="napp">' + TG + '</span>' +
+        '<span class="nname">Telegram</span><span class="ntime">сейчас</span></div>' +
+        '<b>' + esc(f.from) + '</b><p><span class="nf">' + nb(f.title) + '.</span> ' + nb(f.text) + '</p></div>';
+    }).join('');
+    var n = d.flags.length;
+    return cards + '<div class="nhint" id="nhint" hidden>Telegram, ' + n + ' ' +
+      GK.plural(n, 'уведомление', 'уведомления', 'уведомлений') + '</div>';
+  };
+
+  /* что уже держит */
+  R.holds = function(d){
+    var li = d.holds.map(function(x){
+      return '<li><span class="hc"></span><span><b>' + nb(x.title) + '.</b> ' + nb(x.text) + '</span></li>';
+    }).join('');
+    return '<div class="holds-h">' + nb('Что уже держит') + '</div><ul>' + li + '</ul>';
+  };
+
+  /* контакты в подвале письма: «Роль: Имя. Телефон» разворачивается в «Имя, роль. Телефон» */
+  function contacts(d){
+    var last = null;
+    d.source.forEach(function(b){ if (b.kind === 'p') last = b; });
+    var t = last ? last.text : '';
+    var m = t.match(/^([^:]+):\s*([^.]+\.)\s*(.*)$/);
+    var who = m ? m[2] + ', ' + m[1].charAt(0).toLowerCase() + m[1].slice(1) + '. ' + m[3] : t;
+    return d.meta.vendor + '. ' + who;
+  }
+
+  /* исправленная первая страница в виде письма */
+  R.doc = function(d){
+    var f = d.fixed_page, m = d.meta;
+    var title = f.subject.replace(/^[^.]*\.\s*/, '') || f.subject;
+    var body = f.sections.map(function(s, i){
+      return '<div class="ds" style="--i:' + (i + 1) + '"><h4>' + nb(s.title) + '</h4><p>' + ph(s.text) + '</p></div>';
+    }).join('');
+    return '<div class="mail-bar"><span class="mail-back">Входящие</span><span class="mail-cnt">1 из 3</span></div>' +
+      '<div class="doc-head"><span class="mav">' + esc(f.from_initials) + '</span><div class="mhd">' +
+      '<div class="mrow"><b class="mfrom">' + nb(m.vendor) + '</b><span class="mdate">' + esc(GK.mailDate(m.kp_date)) + ', 10:12</span></div>' +
+      '<div class="mto">Кому: ' + esc(d.readers[1].name) + ' <span class="mchev"></span></div></div></div>' +
+      '<div class="msubj">' + nb(f.subject) + '</div>' +
+      '<div class="ds stay" style="--i:0"><div class="doc-kicker">Коммерческое предложение</div>' +
+      '<h3 class="doc-title">' + nb(title) + '</h3>' +
+      '<p class="doc-sub">' + nb('Первая страница. Этапы, смета и условия идут дальше без изменений.') + '</p></div>' +
+      '<div class="doc-body" id="docBody">' + DOC_CTA + body + '</div>' +
+      '<div class="doc-foot ds" style="--i:' + (f.sections.length + 1) + '">' + nb(contacts(d)) + '</div>';
+  };
+
+  /* час на правки: кольцо по минутам и список ходов */
+  R.plan = function(d){
+    var C = 741.42, GAP = 7, TILT = 1.699;
+    var total = d.plan.reduce(function(a, p){ return a + p.minutes; }, 0), acc = 0;
+    var segs = d.plan.map(function(p, i){
+      var len = (C * p.minutes / total - GAP).toFixed(2);
+      var rot = (-90 + 360 * acc / total + TILT).toFixed(3);
+      acc += p.minutes;
+      return '<circle class="seg" cx="150" cy="150" r="118" fill="none" stroke-width="14" stroke-linecap="round" ' +
+        'stroke-dasharray="' + len + ' ' + C + '" stroke-dashoffset="' + len + '" ' +
+        'transform="rotate(' + rot + ' 150 150)" style="--d:' + (i * 140) + 'ms"/>';
+    }).join('');
+    var rows = d.plan.map(function(p, i){
+      return '<li data-min="' + p.minutes + '"><span class="pn"><i>' + (i + 1) + '</i></span>' +
+        '<span class="t">' + nb(p.title) + '<span>' + nb(p.text) + '</span></span>' +
+        '<span class="m">' + nb(p.minutes + ' мин') + '</span></li>';
+    }).join('');
+    return '<div class="timer"><div class="ring"><svg viewBox="0 0 300 300" width="300" height="300" aria-hidden="true">' +
+      '<circle cx="150" cy="150" r="118" fill="none" stroke="var(--line)" stroke-width="14"/>' + segs +
+      '<circle class="prog" id="prog" cx="150" cy="150" r="118" fill="none" stroke="#FF9F0A" stroke-width="14" stroke-linecap="round" stroke-dasharray="0 ' + C + '" transform="rotate(-90 150 150)"/>' +
+      '</svg><div class="ring-c"><div class="tleft" id="tleft">' + GK.mmss(total * 60) + '</div>' +
+      '<div class="tlabel" id="tlabel">' + nb(GK.planLabel(d)) + '</div></div></div>' +
+      '<div class="tctl"><button type="button" class="tbtn cancel" id="tcancel">Отмена</button>' +
+      '<button type="button" class="tbtn start" id="tstart">Старт</button></div></div>' +
+      '<ol class="plan" id="plan">' + rows + '</ol>';
+  };
+
+  /* исходное КП */
+  R.source = function(d){
+    var firstH = true;
+    var blocks = d.source.map(function(b){
+      var id = ' id="' + esc(b.id) + '"';
+      if (b.kind === 'h') { var c = firstH ? ' class="h0"' : ''; firstH = false; return '<h3' + c + id + '>' + nb(b.text) + '</h3>'; }
+      if (b.kind === 'note') return '<p class="fine"' + id + '>' + nb(b.text) + '</p>';
+      if (b.kind === 'list') return '<ul' + id + '>' + b.items.map(function(x){ return '<li>' + nb(x) + '</li>'; }).join('') + '</ul>';
+      if (b.kind === 'table') {
+        var head = '<thead><tr>' + b.rows[0].map(function(c){ return '<th>' + nb(c) + '</th>'; }).join('') + '</tr></thead>';
+        var rows = b.rows.slice(1).map(function(r){
+          return '<tr>' + r.map(function(c){ return '<td>' + nb(c) + '</td>'; }).join('') + '</tr>';
+        }).join('');
+        return '<table' + id + '>' + head + '<tbody>' + rows + '</tbody></table>';
+      }
+      return '<p' + id + '>' + nb(b.text) + '</p>';
+    }).join('');
+    var m = d.meta;
+    return '<summary>' + nb('Полный текст КП №' + m.kp_number + ', «' + m.vendor + '» для ' + m.client) + '</summary>' +
+      '<div class="kp"><p class="fine">' + nb('Компании и люди вымышлены. Документ собран как типовое КП среднего digital-агентства для проверки методики.') + '</p>' +
+      blocks + '</div>';
+  };
+
+  GK.render = function(d){
+    GK.data = d;
+    var q = function(s){ return document.querySelector(s); };
+    q('header .meta').innerHTML = R.header(d);
+    q('.hero-t').innerHTML = R.hero(d);
+    var c = R.chat(d);
+    q('#chat').insertAdjacentHTML('afterbegin', c.head);
+    q('#chat .msgs').innerHTML = c.msgs;
+    q('#s-toc .note').innerHTML = R.toc(d);
+    q('.intake').innerHTML = R.intake(d);
+    q('#memo').innerHTML = R.memo(d);
+    q('#readers').innerHTML = R.readers(d);
+    q('.blocks').innerHTML = R.blocks(d);
+    q('#nstack').innerHTML = R.flags(d);
+    q('.holds').innerHTML = R.holds(d);
+    q('#docp').innerHTML = R.doc(d);
+    q('#hour').innerHTML = R.plan(d);
+    q('#s-source details').innerHTML = R.source(d);
+    document.title = 'Good КП: ' + GK.clientShort(d);
+  };
+
+  GK.boot = function(){
+    var el = document.getElementById('data'), txt = (el && el.textContent || '').trim();
+    if (!txt) { document.body.classList.add('nodata'); return false; }
+    var d;
+    try { d = JSON.parse(txt); } catch (e) { document.body.classList.add('nodata'); console.error('Good КП: JSON не разобран', e); return false; }
+    if (d.refusal) { document.body.classList.add('nodata'); console.error('Good КП: отказ', d.refusal.reason); return false; }
+    GK.render(d);
+    return true;
+  };
+})();
+</script>
 
 <header class="top">
   <div class="wrap">
     <div class="brand">Good КП</div>
-    <div class="meta"><b>КП №0417 от&nbsp;21.08.2026</b><br>«Пиксель Лаб» для&nbsp;ООО «СтройМаркет»<br>Прогон 07.09.2026 по&nbsp;методике Вадима Школьного</div>
+    <div class="meta"></div>
   </div>
 </header>
 
@@ -507,32 +857,12 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
 
 <div class="hero">
   <div class="wrap">
-    <div class="hero-t">
-      <h1>До&nbsp;стола директора это&nbsp;КП не&nbsp;дойдет</h1>
-      <p>Три из&nbsp;шести опор провалены, две шатаются, одна держит. Тому, кто&nbsp;продвигает проект внутри клиента, нечем его&nbsp;защитить, а&nbsp;тому, кто&nbsp;платит, не&nbsp;за&nbsp;что&nbsp;зацепиться на&nbsp;первых двух страницах.</p>
-      <button class="replay" type="button" id="replay">Проиграть еще&nbsp;раз</button>
-    </div>
+    <div class="hero-t"></div>
 
     <div class="chat" id="chat" aria-label="Как обсуждали это КП внутри клиента">
-      <div class="chat-h">
-        <div class="chat-avs"><span>С</span><span>Д</span></div>
-        <div class="chat-t"><b>Сайт, КП от&nbsp;Пиксель Лаб</b><span>Сергей, Дмитрий</span></div>
-        <div class="chat-timer" id="timer"><span>Сергей читает файл</span><b>0:00</b></div>
-      </div>
+      
       <div class="chat-b">
-        <div class="msgs">
-          <div class="m me" data-wait="300"><div class="file"><span class="ico">PDF</span><span><b>КП №0417.pdf</b><i>2,4&nbsp;МБ</i></span></div></div>
-          <div class="m me" data-wait="500"><div class="b">Пришло КП от&nbsp;Пиксель Лаб. Посмотрите, пожалуйста</div></div>
-          <div class="m them" data-name="Сергей" data-type="1400" data-wait="1600" data-timer="start"><div class="b">Открыл. Две страницы про&nbsp;них. Где&nbsp;мы?</div></div>
-          <div class="m them" data-name="Сергей" data-type="1200" data-wait="600"><div class="b">2,4&nbsp;млн и&nbsp;еще&nbsp;3&nbsp;500 в&nbsp;час сверху. За&nbsp;что?</div></div>
-          <div class="m me" data-wait="1300"><div class="b">Там&nbsp;понятные этапы, 16&nbsp;недель. И&nbsp;интеграция с&nbsp;1С есть</div></div>
-          <div class="m them" data-name="Дмитрий" data-type="1500" data-wait="900"><div class="b">1С вижу, ок. А&nbsp;чат-бот и&nbsp;калькулятор кто&nbsp;вести будет? Это&nbsp;на&nbsp;меня ляжет</div></div>
-          <div class="m them" data-name="Сергей" data-type="1600" data-wait="700" data-timer="stop"><div class="b">Дошел до&nbsp;третьей страницы и&nbsp;закрыл. «Вам нужен современный сайт». Спасибо, я&nbsp;в&nbsp;курсе</div></div>
-          <div class="m them" data-name="Сергей" data-type="900" data-wait="500"><div class="b">Что&nbsp;это&nbsp;нам даст? Цифру назови</div></div>
-          <div class="m me" data-wait="3200"><div class="b">Там&nbsp;нет цифр</div><div class="st">Прочитано</div></div>
-          <div class="m them" data-name="Сергей" data-type="1300" data-wait="900"><div class="b">Тогда мне нечего смотреть. Есть еще&nbsp;два КП, там&nbsp;хотя&nbsp;бы&nbsp;понятно, за&nbsp;что</div></div>
-          <div class="m me" data-wait="1600"><div class="b">Поняла. Не&nbsp;несу</div><div class="st">Доставлено</div></div>
-        </div>
+        <div class="msgs"></div>
         <div class="typing" id="typing" hidden><span></span><span></span><span></span></div>
       </div>
     </div>
@@ -541,57 +871,25 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
 
 <main>
 
+<div class="nodata-msg">Нет данных. Вставьте report.json в блок <code>#data</code> или откройте страницу через docs/index.html.</div>
+
 <section id="s-toc" class="tocsec">
   <div class="wrap">
-    <div class="note rv">
-      <div class="note-bar"><span class="back">Заметки</span><span class="ok">Готово</span></div>
-      <div class="note-date" id="noteDate">7 сентября 2026, 14:24&nbsp;МСК</div>
-      <h2 class="note-title">Что&nbsp;внутри</h2>
-      <ul class="note-list">
-        <li data-sec="s-intake"><a href="#s-intake"><span class="cb"></span><span class="tx"><b>Вводные</b><span>что&nbsp;знали о&nbsp;сделке до&nbsp;прогона</span></span></a></li>
-        <li data-sec="s-verdict"><a href="#s-verdict"><span class="cb"></span><span class="tx"><b>Вердикт</b><span>что&nbsp;клиент сказал&nbsp;бы&nbsp;вслух</span></span></a></li>
-        <li data-sec="s-readers"><a href="#s-readers"><span class="cb"></span><span class="tx"><b>Кто&nbsp;читал</b><span>трое внутри клиента и&nbsp;что&nbsp;подумал каждый</span></span></a></li>
-        <li data-sec="s-blocks"><a href="#s-blocks"><span class="cb"></span><span class="tx"><b>Прогон по&nbsp;опорам</b><span>что&nbsp;не&nbsp;так, что&nbsp;подумали, как&nbsp;переписать</span></span></a></li>
-        <li data-sec="s-flags"><a href="#s-flags"><span class="cb"></span><span class="tx"><b>Флаги и&nbsp;опоры</b><span>что&nbsp;мешает и&nbsp;что&nbsp;уже&nbsp;держит</span></span></a></li>
-        <li data-sec="s-fixed"><a href="#s-fixed"><span class="cb"></span><span class="tx"><b>Исправленная страница</b><span>собрать первую страницу и&nbsp;скачать</span></span></a></li>
-        <li data-sec="s-plan"><a href="#s-plan"><span class="cb"></span><span class="tx"><b>Что&nbsp;сделать за&nbsp;час</b><span>пять ходов по&nbsp;убыванию эффекта</span></span></a></li>
-        <li data-sec="s-method"><a href="#s-method"><span class="cb"></span><span class="tx"><b>Методика</b><span>на&nbsp;чем построен разбор</span></span></a></li>
-        <li data-sec="s-source"><a href="#s-source"><span class="cb"></span><span class="tx"><b>Исходное КП</b><span>то, что&nbsp;прогонялось</span></span></a></li>
-      </ul>
-    </div>
+    <div class="note rv"></div>
   </div>
 </section>
 
 <section id="s-intake">
   <div class="wrap">
     <h2 class="rv">Вводные</h2>
-    <div class="intake rv">
-      <div><span class="k">Клиент</span><span class="v">Региональная сеть строительных гипермаркетов, 5&nbsp;магазинов, Урал</span></div>
-      <div><span class="k">Проект</span><span class="v">Новый сайт с&nbsp;каталогом и&nbsp;онлайн-заказом, интеграция с&nbsp;1С</span></div>
-      <div><span class="k">Кто получит КП</span><span class="v">Директор по&nbsp;маркетингу. Дальше понесет гендиру</span></div>
-      <div><span class="k">Стадия</span><span class="v">После первого брифинга, до&nbsp;презентации</span></div>
-      <div><span class="k">Цель у&nbsp;клиента</span><span class="v">Размытая: «конкуренты уже продают онлайн, нам тоже нужен современный сайт»</span></div>
-      <div><span class="k">Бюджет</span><span class="v">Клиент не&nbsp;назвал</span></div>
-    </div>
+    <div class="intake rv"></div>
   </div>
 </section>
 
 <section id="s-verdict">
   <div class="wrap">
     <h2 class="rv">Вердикт</h2>
-    <div class="memo rv" id="memo">
-      <div class="memo-row">
-        <div class="memo-t"><b>Сергей, гендир «СтройМаркета»</b><span id="memoDate">7 сентября 2026, 14:24</span></div>
-        <span class="memo-dur">0:14</span>
-      </div>
-      <div class="wave-wrap">
-        <div class="wave" id="wave" aria-hidden="true"></div>
-        <div class="playhead" id="playhead"></div>
-      </div>
-      <div class="memo-times"><span id="memoTime">0:00</span><span id="memoLeft">-0:14</span></div>
-      <div class="memo-ctl"><button type="button" class="skip" id="memoBack" aria-label="Назад на 5 секунд"><svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16.25 5.64A8.5 8.5 0 1 1 7.75 5.64"/><path d="M4.55 5.64L7.75 5.64L6.15 8.41"/></g><text x="12" y="16.3" text-anchor="middle" font-size="8.6" font-weight="600" fill="currentColor" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif">5</text></svg></button><button class="play" type="button" id="memoPlay" aria-label="Проиграть"><svg class="ic-play" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg><svg class="ic-pause" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg></button><button type="button" class="skip" id="memoFwd" aria-label="Вперед на 5 секунд"><svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><g transform="translate(24 0) scale(-1 1)" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16.25 5.64A8.5 8.5 0 1 1 7.75 5.64"/><path d="M4.55 5.64L7.75 5.64L6.15 8.41"/></g><text x="12" y="16.3" text-anchor="middle" font-size="8.6" font-weight="600" fill="currentColor" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif">5</text></svg></button></div>
-      <p class="memo-q" id="memoQ"><span>«Две</span> <span>страницы</span> <span>про</span> <span>вас,</span> <span>потом</span> <span>список</span> <span>всего,</span> <span>что</span> <span>вы</span> <span>умеете,</span> <span>потом</span> <span>цена.</span> <span>Где</span> <span>я?</span> <span>Где</span> <span>мой</span> <span>магазин,</span> <span>мои</span> <span>заказы,</span> <span>мои</span> <span>деньги?</span> <span>Я</span> <span>это</span> <span>уже</span> <span>видел</span> <span>три</span> <span>раза</span> <span>за</span> <span>месяц,</span> <span>и</span> <span>там</span> <span>было</span> <span>дешевле.»</span></p>
-    </div>
+    <div class="memo rv" id="memo"></div>
   </div>
 </section>
 
@@ -600,72 +898,7 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
     <h2 class="rv">Кто&nbsp;читал</h2>
     <p class="lead prose rv">Решение по&nbsp;подрядчику принимает группа людей с&nbsp;разными интересами. Прогон читает КП тремя парами глаз: кто&nbsp;платит, кто&nbsp;продвигает, кто&nbsp;будет с&nbsp;этим жить после запуска.</p>
 
-    <div class="readers rv" id="readers">
-      <div class="segctl" role="tablist" aria-label="Читатель">
-        <span class="thumb" aria-hidden="true"></span>
-        <button role="tab" type="button" aria-selected="true" data-i="0">Сергей</button>
-        <button role="tab" type="button" aria-selected="false" data-i="1">Ольга</button>
-        <button role="tab" type="button" aria-selected="false" data-i="2">Дмитрий</button>
-      </div>
-
-      <div class="pane" data-i="0" role="tabpanel">
-        <div class="portrait">
-          <div class="pc"><span class="pav" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><circle cx="12" cy="8.5" r="4.2" fill="#fff"/><path d="M4 20.5c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5v.5H4z" fill="#fff"/></svg></span><div><h3>Сергей</h3><div class="who">Гендир «СтройМаркета», платит</div></div></div>
-          <div class="ptiles">
-            <div><span class="k">Важно</span><p>Когда окупится. И&nbsp;что&nbsp;будет, если через четыре месяца ничего не&nbsp;будет.</p></div>
-            <div><span class="k">Как&nbsp;читает</span><p>Сначала ищет цену. Находит 2,4&nbsp;млн и&nbsp;3&nbsp;500 в&nbsp;час, идет назад искать, за&nbsp;что.</p></div>
-            <div class="pt-final"><span class="k">Итог</span><p>Закрыл файл на&nbsp;третьей странице.</p></div>
-          </div>
-        </div>
-        <ol class="feed">
-          <li class="msg pre" style="--i:0"><span class="step">Сначала цена</span><p>«2,4&nbsp;миллиона и&nbsp;еще&nbsp;3&nbsp;500 в&nbsp;час сверху? За&nbsp;что?»</p></li>
-          <li class="msg drop" style="--i:1"><span class="step">1. Проблема</span><p>«Это&nbsp;я&nbsp;и&nbsp;без&nbsp;вас знаю. Я&nbsp;вам за&nbsp;что&nbsp;плачу?»</p><span class="st crit">Закрыл файл</span></li>
-          <li class="msg off" style="--i:2"><span class="step">2. Цели</span><p>Не&nbsp;дошел</p></li>
-          <li class="msg off" style="--i:3"><span class="step">3. Решение</span><p>Не&nbsp;дошел</p></li>
-          <li class="msg off" style="--i:4"><span class="step">4. Как&nbsp;сделаем</span><p>Не&nbsp;дошел</p></li>
-          <li class="msg off" style="--i:5"><span class="step">5. Почему мы</span><p>Не&nbsp;дошел</p></li>
-          <li class="msg off" style="--i:6"><span class="step">6. Почему точно</span><p>Не&nbsp;дошел</p></li>
-        </ol>
-      </div>
-
-      <div class="pane" data-i="1" role="tabpanel" hidden>
-        <div class="portrait">
-          <div class="pc"><span class="pav" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><circle cx="12" cy="8.5" r="4.2" fill="#fff"/><path d="M4 20.5c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5v.5H4z" fill="#fff"/></svg></span><div><h3>Ольга</h3><div class="who">Директор по&nbsp;маркетингу, продвигает проект</div></div></div>
-          <div class="ptiles">
-            <div><span class="k">Важно</span><p>Защитить бюджет перед Сергеем и&nbsp;не&nbsp;подставиться. Ей нужен союзник, поставщиков у&nbsp;нее уже&nbsp;три.</p></div>
-            <div><span class="k">Как&nbsp;читает</span><p>С&nbsp;карандашом. Ищет аргументы, которые повторит на&nbsp;планерке.</p></div>
-            <div class="pt-final"><span class="k">Итог</span><p>Дочитала. Наверх не&nbsp;понесла.</p></div>
-          </div>
-        </div>
-        <ol class="feed">
-          <li class="msg" style="--i:0"><span class="step">1. Проблема</span><p>Нечего пересказать наверху. «Нужен современный сайт» Сергей уже&nbsp;слышал от&nbsp;нее самой.</p></li>
-          <li class="msg" style="--i:1"><span class="step">2. Цели</span><p>«Без&nbsp;цели я&nbsp;не&nbsp;защищу ни&nbsp;бюджет, ни&nbsp;себя, если сайт не&nbsp;взлетит.»</p></li>
-          <li class="msg" style="--i:2"><span class="step">3. Решение</span><p>«Половина списка лишняя. Но&nbsp;какая половина?»</p></li>
-          <li class="msg" style="--i:3"><span class="step">4. Как&nbsp;сделаем</span><p>«Этапы хорошие, это&nbsp;я&nbsp;покажу. А&nbsp;что&nbsp;нужно от&nbsp;нас?»</p></li>
-          <li class="msg drop" style="--i:4"><span class="step">5. Почему мы</span><p>«Чем&nbsp;вы&nbsp;отличаетесь от&nbsp;двух других КП у&nbsp;меня на&nbsp;столе?»</p><span class="st crit">Отвалилась</span></li>
-          <li class="msg off" style="--i:5"><span class="step">6. Почему точно</span><p>Дочитала по&nbsp;инерции. Аргументов для&nbsp;Сергея не&nbsp;нашла.</p></li>
-        </ol>
-      </div>
-
-      <div class="pane" data-i="2" role="tabpanel" hidden>
-        <div class="portrait">
-          <div class="pc"><span class="pav" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><circle cx="12" cy="8.5" r="4.2" fill="#fff"/><path d="M4 20.5c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5v.5H4z" fill="#fff"/></svg></span><div><h3>Дмитрий</h3><div class="who">Руководитель IT, отвечает за&nbsp;1С</div></div></div>
-          <div class="ptiles">
-            <div><span class="k">Важно</span><p>Как&nbsp;это&nbsp;ляжет на&nbsp;1С и&nbsp;кто&nbsp;будет поддерживать.</p></div>
-            <div><span class="k">Как&nbsp;читает</span><p>По&nbsp;диагонали до&nbsp;слова «1С». Потом считает, сколько фич ему чинить.</p></div>
-            <div class="pt-final"><span class="k">Итог</span><p>Дочитал. Главный вопрос без&nbsp;ответа.</p></div>
-          </div>
-        </div>
-        <ol class="feed">
-          <li class="msg off" style="--i:0"><span class="step">1. Проблема</span><p>Пропустил. Вода перед таблицей.</p></li>
-          <li class="msg" style="--i:1"><span class="step">2. Цели</span><p>«Под&nbsp;какую нагрузку это&nbsp;проектировать? Нигде не&nbsp;написано.»</p></li>
-          <li class="msg drop" style="--i:2"><span class="step">3. Решение</span><p>«Чат-бот кто&nbsp;вести будет? Калькулятор на&nbsp;чьих остатках считает?»</p><span class="st warn">Споткнулся</span></li>
-          <li class="msg" style="--i:3"><span class="step">4. Как&nbsp;сделаем</span><p>«Когда попросят доступ к&nbsp;1С? Тут&nbsp;ни&nbsp;слова, значит, попросят внезапно.»</p></li>
-          <li class="msg" style="--i:4"><span class="step">5. Почему мы</span><p>«Кто-то из&nbsp;них делал 1С в&nbsp;ритейле? По&nbsp;логотипам не&nbsp;понять.»</p></li>
-          <li class="msg" style="--i:5"><span class="step">6. Почему точно</span><p>«А&nbsp;поддержка? Кто&nbsp;чинит, когда 1С обновится?» Главный его&nbsp;вопрос, и&nbsp;он&nbsp;без&nbsp;ответа.</p></li>
-        </ol>
-      </div>
-    </div>
+    <div class="readers rv" id="readers"></div>
   </div>
 </section>
 
@@ -675,108 +908,6 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
     <h2 class="rv">Прогон по&nbsp;опорам</h2>
     <p class="lead prose rv">Сильное КП отвечает на&nbsp;шесть вопросов по&nbsp;порядку. Если на&nbsp;какой-то из&nbsp;них ответа нет, клиент задает его сам, и&nbsp;обычно не&nbsp;в&nbsp;вашу пользу. Цифры в&nbsp;скобках берутся из&nbsp;брифинга.</p>
     <div class="blocks">
-
-      <article class="block crit rv">
-        <button class="brow" type="button" aria-expanded="false"><span class="i">1</span><span class="bt"><b>Проблема клиента</b><span>Пересказ хотелки вместо проблемы.</span></span><span class="st crit">Отвалился</span><span class="chev" aria-hidden="true"></span></button>
-        <div class="bbody"><div><div class="bx">
-          <div class="bl">
-            <div class="kpq"><span class="kq">Из&nbsp;КП</span><p>«Мы&nbsp;понимаем, что&nbsp;вам необходим современный, удобный сайт с&nbsp;каталогом продукции и&nbsp;возможностью онлайн-заказа, который будет соответствовать актуальным трендам и&nbsp;ожиданиям ваших клиентов.»</p><a class="findsrc" href="#src-1" data-src="src-1">Найти в&nbsp;исходном КП</a></div>
-            <p class="bwhy">Это&nbsp;хотелка клиента, переписанная его&nbsp;же&nbsp;словами. Проблема бизнеса, из-за которой хотелка вообще появилась, в&nbsp;КП не&nbsp;названа: сколько заказов уходит, где&nbsp;они застревают, кому от&nbsp;этого больно. Раздел называется «Понимание задачи», а&nbsp;понимания в&nbsp;нем нет.</p>
-            <p class="bdo"><b>Что делать.</b> Взять из&nbsp;брифинга одну боль, назвать ее&nbsp;словами клиента и&nbsp;показать, где&nbsp;она стоит денег. Одного абзаца хватит, но&nbsp;в&nbsp;нем должна быть цифра из&nbsp;жизни «СтройМаркета». Отраслевая средняя тут&nbsp;не&nbsp;сработает.</p>
-          </div>
-          <div class="br">
-            <div class="ba">
-              <div class="segctl two" role="tablist" aria-label="Было или стало"><span class="thumb" aria-hidden="true" style="transform:translateX(100%)"></span><button type="button" role="tab" aria-selected="false" data-v="was">Было</button><button type="button" role="tab" aria-selected="true" data-v="now">Стало</button></div>
-              <div class="ba-text"><p class="was" hidden>Мы&nbsp;понимаем, что&nbsp;вам необходим современный, удобный сайт с&nbsp;каталогом продукции и&nbsp;возможностью онлайн-заказа.</p><p class="now">Сейчас заказ у&nbsp;вас идет через звонок в&nbsp;магазин: менеджер вручную сверяет остатки в&nbsp;1С и&nbsp;перезванивает. На&nbsp;это&nbsp;уходит до <span class="ph">[N минут]</span> на&nbsp;заказ, а <span class="ph">[доля]</span> клиентов за&nbsp;это&nbsp;время уходит к&nbsp;тем, у&nbsp;кого остатки видно онлайн. Сайт нужен, чтобы закрыть эту дыру. «У&nbsp;конкурентов уже&nbsp;есть» здесь второй аргумент.</p></div>
-            </div>
-          </div>
-        </div></div>
-      </article>
-
-      <article class="block crit rv">
-        <button class="brow" type="button" aria-expanded="false"><span class="i">2</span><span class="bt"><b>Цели и&nbsp;метрики</b><span>Ни&nbsp;одной цифры, ни&nbsp;одной цели.</span></span><span class="st crit">Отвалился</span><span class="chev" aria-hidden="true"></span></button>
-        <div class="bbody"><div><div class="bx">
-          <div class="bl">
-            <div class="kpq"><span class="kq">Из&nbsp;КП</span><p>Раздела нет. Ближайшее к&nbsp;цели: «повышение узнаваемости бренда и&nbsp;лояльности клиентов» в&nbsp;описании услуг.</p><a class="findsrc" href="#src-1" data-src="src-1">Найти в&nbsp;исходном КП</a></div>
-            <p class="bwhy">Во&nbsp;всем документе нет ни&nbsp;одной измеримой цели. Что&nbsp;должно измениться через полгода после запуска, никто не&nbsp;сказал, а&nbsp;значит, любой результат будет одновременно и&nbsp;успехом, и&nbsp;провалом. Это&nbsp;то, что&nbsp;Школьный называет «кот в&nbsp;мешке»: клиент не&nbsp;назвал метрику, и&nbsp;КП не&nbsp;помогло ему ее&nbsp;назвать.</p>
-            <p class="bdo"><b>Что делать.</b> Если клиент цель не&nbsp;назвал, КП должно ее&nbsp;предложить как&nbsp;гипотезу с&nbsp;вопросом. Молчать здесь хуже всего. Две-три метрики, привязанные к&nbsp;проблеме из&nbsp;первого блока. Клиент поправит, и&nbsp;разговор пойдет о&nbsp;его&nbsp;деле вместо вашего прайса.</p>
-          </div>
-          <div class="br">
-            <div class="ba">
-              <div class="segctl two" role="tablist" aria-label="Было или стало"><span class="thumb" aria-hidden="true" style="transform:translateX(100%)"></span><button type="button" role="tab" aria-selected="false" data-v="was">Было</button><button type="button" role="tab" aria-selected="true" data-v="now">Стало</button></div>
-              <div class="ba-text"><p class="was" hidden>Раздела нет.</p><p class="now">Цель проекта, как&nbsp;мы&nbsp;ее&nbsp;услышали на&nbsp;брифинге, и&nbsp;ее&nbsp;надо подтвердить: за&nbsp;6&nbsp;месяцев после запуска перевести <span class="ph">[15%]</span> розничных заказов в&nbsp;онлайн и&nbsp;снять с&nbsp;менеджеров магазинов <span class="ph">[треть]</span> звонков по&nbsp;остаткам. Меряем: доля онлайн-заказов, среднее время от&nbsp;заказа до&nbsp;подтверждения, число звонков в&nbsp;магазины. Если у&nbsp;вас другие приоритеты, мы&nbsp;перестроим решение под&nbsp;них до&nbsp;старта.</p></div>
-            </div>
-          </div>
-        </div></div>
-      </article>
-
-      <article class="block warn rv">
-        <button class="brow" type="button" aria-expanded="false"><span class="i">3</span><span class="bt"><b>Решение</b><span>Список из&nbsp;11 услуг, три без&nbsp;задачи.</span></span><span class="st warn">Споткнулся</span><span class="chev" aria-hidden="true"></span></button>
-        <div class="bbody"><div><div class="bx">
-          <div class="bl">
-            <div class="kpq"><span class="kq">Из&nbsp;КП</span><p>Одиннадцать пунктов подряд: аналитика, UX/UI, адаптивная верстка, каталог, корзина, интеграция с&nbsp;1С, личный кабинет, калькулятор материалов, motion-анимации, чат-бот, SEO-оптимизация.</p><a class="findsrc" href="#src-3" data-src="src-3">Найти в&nbsp;исходном КП</a></div>
-            <p class="bwhy">Это&nbsp;«питч наоборот»: список того, что&nbsp;агентство умеет, вместо ответа на&nbsp;задачу клиента. Половина пунктов по&nbsp;делу: каталог, корзина, 1С, адаптив. Вторая половина ничем не&nbsp;привязана: зачем «СтройМаркету» motion-анимации и&nbsp;чат-бот, в&nbsp;КП не&nbsp;объяснено. Это&nbsp;те самые фичи ради фич, а&nbsp;клиент чувствует, когда ему продают комплект вместо решения.</p>
-            <p class="bdo"><b>Что делать.</b> Каждый пункт привязать к&nbsp;цели из&nbsp;блока 2 одной строкой: «что&nbsp;это&nbsp;дает». Что&nbsp;привязать не&nbsp;получается, вынести в&nbsp;«опционально, если подтвердится на&nbsp;аналитике» или&nbsp;убрать. Список станет короче, а&nbsp;КП сильнее.</p>
-          </div>
-          <div class="br">
-            <div class="ba">
-              <div class="segctl two" role="tablist" aria-label="Было или стало"><span class="thumb" aria-hidden="true" style="transform:translateX(100%)"></span><button type="button" role="tab" aria-selected="false" data-v="was">Было</button><button type="button" role="tab" aria-selected="true" data-v="now">Стало</button></div>
-              <div class="ba-text"><p class="was" hidden>Motion-анимации для&nbsp;современного, динамичного восприятия сайта. Чат-бот для&nbsp;оперативной консультации клиентов 24/7.</p><p class="now">Каталог с&nbsp;живыми остатками из&nbsp;1С: клиент видит, есть&nbsp;ли&nbsp;товар в&nbsp;его&nbsp;магазине, и&nbsp;не&nbsp;звонит. Корзина и&nbsp;заказ с&nbsp;самовывозом из&nbsp;выбранного магазина: закрывает цель по&nbsp;онлайн-заказам. Чат-бот и&nbsp;калькулятор материалов в&nbsp;базовый объем не&nbsp;включаем: они требуют, чтобы кто-то на&nbsp;вашей стороне их&nbsp;вел. Вернемся к&nbsp;ним после запуска, если аналитика покажет спрос.</p></div>
-            </div>
-          </div>
-        </div></div>
-      </article>
-
-      <article class="block good rv">
-        <button class="brow" type="button" aria-expanded="false"><span class="i">4</span><span class="bt"><b>Как&nbsp;сделаем</b><span>Этапы есть, T&amp;M торчит хвостом.</span></span><span class="st good">Прошло</span><span class="chev" aria-hidden="true"></span></button>
-        <div class="bbody"><div><div class="bx">
-          <div class="bl">
-            <div class="kpq"><span class="kq">Из&nbsp;КП</span><p>Аналитика 2&nbsp;недели → Дизайн 4&nbsp;недели → Разработка 8&nbsp;недель → Тестирование и&nbsp;запуск 2&nbsp;недели. Итого 16&nbsp;недель. Ниже: «Дополнительные работы вне объема оцениваются по&nbsp;Time &amp; Material, 3&nbsp;500&nbsp;руб/час».</p><a class="findsrc" href="#src-4" data-src="src-4">Найти в&nbsp;исходном КП</a></div>
-            <p class="bwhy">Сам план хороший: этапы названы, сроки честные, это&nbsp;лучшее место в&nbsp;документе. Две дыры. Первая: не&nbsp;сказано, что&nbsp;на&nbsp;каждом этапе нужно от&nbsp;клиента (контент, доступы к&nbsp;1С, согласования), а&nbsp;именно на&nbsp;этом сроки и&nbsp;плывут. Вторая: T&amp;M подан как&nbsp;оговорка мелким шрифтом, с&nbsp;опаской. Клиент читает это&nbsp;как&nbsp;«цена не&nbsp;окончательная».</p>
-            <p class="bdo"><b>Что делать.</b> Добавить к&nbsp;каждому этапу строку «что&nbsp;нужно от&nbsp;вас». T&amp;M вынести из&nbsp;подвала и&nbsp;объяснить как&nbsp;механизм: для&nbsp;чего он, как&nbsp;согласуется, какой у&nbsp;него потолок. Уверенно, без&nbsp;оправданий.</p>
-          </div>
-          <div class="br">
-            <div class="ba">
-              <div class="segctl two" role="tablist" aria-label="Было или стало"><span class="thumb" aria-hidden="true" style="transform:translateX(100%)"></span><button type="button" role="tab" aria-selected="false" data-v="was">Было</button><button type="button" role="tab" aria-selected="true" data-v="now">Стало</button></div>
-              <div class="ba-text"><p class="was" hidden>Дополнительные работы вне объема оцениваются по&nbsp;Time &amp; Material, 3&nbsp;500&nbsp;руб/час.</p><p class="now">Фиксированная стоимость покрывает весь объем выше. Если по&nbsp;ходу появятся задачи вне его&nbsp;(например, новый раздел или&nbsp;интеграция, которой нет в&nbsp;списке), мы&nbsp;оцениваем их&nbsp;отдельно по&nbsp;3&nbsp;500&nbsp;руб/час, согласуем письменно до&nbsp;начала и&nbsp;не&nbsp;запускаем без&nbsp;вашего «да». За&nbsp;16&nbsp;недель по&nbsp;нашим проектам такого объема это&nbsp;обычно от&nbsp;0 до <span class="ph">[N]</span> часов.</p></div>
-            </div>
-          </div>
-        </div></div>
-      </article>
-
-      <article class="block crit rv">
-        <button class="brow" type="button" aria-expanded="false"><span class="i">5</span><span class="bt"><b>Почему мы</b><span>«Опытная команда» подходит любому.</span></span><span class="st crit">Отвалился</span><span class="chev" aria-hidden="true"></span></button>
-        <div class="bbody"><div><div class="bx">
-          <div class="bl">
-            <div class="kpq"><span class="kq">Из&nbsp;КП</span><p>«Опытная команда профессионалов. Индивидуальный подход к&nbsp;каждому проекту. Гарантия качества. Работаем по&nbsp;договору. Более 200 реализованных проектов.» Ниже восемь логотипов клиентов.</p><a class="findsrc" href="#src-5" data-src="src-5">Найти в&nbsp;исходном КП</a></div>
-            <p class="bwhy">Ни&nbsp;одно из&nbsp;этих утверждений нельзя проверить, и&nbsp;все&nbsp;они подходят любому агентству. «Сильная команда» без&nbsp;конкретики не&nbsp;аргумент. Логотипы без&nbsp;результата тоже: клиент не&nbsp;знает, что&nbsp;вы&nbsp;им сделали и&nbsp;сработало&nbsp;ли. Единственная цифра, «200 проектов», говорит о&nbsp;конвейере. Об&nbsp;экспертизе в&nbsp;его&nbsp;отрасли она не&nbsp;говорит ничего.</p>
-            <p class="bdo"><b>Что делать.</b> Один кейс из&nbsp;смежной отрасли с&nbsp;цифрой до&nbsp;и&nbsp;после. Два-три человека поименно, кто&nbsp;именно будет делать, с&nbsp;одной строкой про&nbsp;опыт каждого. Убрать все, что&nbsp;нельзя проверить. Меньше слов, больше веса.</p>
-          </div>
-          <div class="br">
-            <div class="ba">
-              <div class="segctl two" role="tablist" aria-label="Было или стало"><span class="thumb" aria-hidden="true" style="transform:translateX(100%)"></span><button type="button" role="tab" aria-selected="false" data-v="was">Было</button><button type="button" role="tab" aria-selected="true" data-v="now">Стало</button></div>
-              <div class="ba-text"><p class="was" hidden>Опытная команда профессионалов. Индивидуальный подход к&nbsp;каждому проекту. Гарантия качества.</p><p class="now">В&nbsp;2025 мы&nbsp;запустили каталог с&nbsp;остатками из&nbsp;1С для <span class="ph">[сеть, отрасль]</span>: за&nbsp;первые 4&nbsp;месяца <span class="ph">[N%]</span> заказов ушло в&nbsp;онлайн, звонков в&nbsp;магазины стало на <span class="ph">[N%]</span> меньше. Проект вели те&nbsp;же&nbsp;люди, что&nbsp;будут на&nbsp;вашем: <span class="ph">[имя]</span>, руководитель проекта, 6 лет в&nbsp;ритейл-интеграциях; <span class="ph">[имя]</span>, разработчик, делал связку с&nbsp;1С у&nbsp;трех сетей. Готовы дать контакт заказчика.</p></div>
-            </div>
-          </div>
-        </div></div>
-      </article>
-
-      <article class="block warn rv">
-        <button class="brow" type="button" aria-expanded="false"><span class="i">6</span><span class="bt"><b>Почему точно сделаем</b><span>«Работаем по&nbsp;договору» и&nbsp;все.</span></span><span class="st warn">Споткнулся</span><span class="chev" aria-hidden="true"></span></button>
-        <div class="bbody"><div><div class="bx">
-          <div class="bl">
-            <div class="kpq"><span class="kq">Из&nbsp;КП</span><p>«Работаем по&nbsp;договору. Предоплата 50%, остаток по&nbsp;завершении.»</p><a class="findsrc" href="#src-6" data-src="src-6">Найти в&nbsp;исходном КП</a></div>
-            <p class="bwhy">Договор есть у&nbsp;всех. Как&nbsp;снятие риска это&nbsp;минимум, ниже которого только рукопожатие. Клиент не&nbsp;видит: как&nbsp;проходит приемка, что&nbsp;будет при&nbsp;срыве сроков, кто&nbsp;персонально отвечает, что&nbsp;с&nbsp;сайтом через месяц после запуска. Схема оплаты 50/50 при&nbsp;16&nbsp;неделях означает, что&nbsp;половину денег клиент отдает вслепую на&nbsp;четыре месяца.</p>
-            <p class="bdo"><b>Что делать.</b> Оплату привязать к&nbsp;этапам с&nbsp;приемкой каждого. Назвать ответственного. Описать, что&nbsp;происходит при&nbsp;сдвиге сроков. Сказать про&nbsp;поддержку после запуска: срок, что&nbsp;входит, сколько стоит дальше.</p>
-          </div>
-          <div class="br">
-            <div class="ba">
-              <div class="segctl two" role="tablist" aria-label="Было или стало"><span class="thumb" aria-hidden="true" style="transform:translateX(100%)"></span><button type="button" role="tab" aria-selected="false" data-v="was">Было</button><button type="button" role="tab" aria-selected="true" data-v="now">Стало</button></div>
-              <div class="ba-text"><p class="was" hidden>Работаем по&nbsp;договору. Предоплата 50%, остаток по&nbsp;завершении.</p><p class="now">Оплата по&nbsp;этапам: 20% на&nbsp;старте, дальше по&nbsp;приемке каждого этапа, остаток после запуска. Каждый этап заканчивается демонстрацией и&nbsp;вашим письменным «принято». За&nbsp;проект отвечает <span class="ph">[имя]</span>, с&nbsp;ним связь напрямую. Если срок сдвигается по&nbsp;нашей вине, этап оплачивается после фактической сдачи, без&nbsp;доплат. После запуска 2&nbsp;месяца гарантийной поддержки входят в&nbsp;стоимость, дальше <span class="ph">[N]</span> руб/мес, включая обновления связки с&nbsp;1С.</p></div>
-            </div>
-          </div>
-        </div></div>
-      </article>
 
     </div>
   </div>
@@ -801,15 +932,7 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
           <div class="lock-lock"><svg viewBox="0 0 16 20" width="14" height="18" aria-hidden="true"><rect x="1" y="8" width="14" height="11" rx="3" fill="#fff"/><path d="M4 8V6a4 4 0 0 1 8 0v2" fill="none" stroke="#fff" stroke-width="2"/></svg></div>
           <div class="lock-date" id="lockDate">Понедельник, 7 сентября</div>
           <div class="lock-time" id="lockTime">14:24</div>
-          <div class="narea" id="nstack">
-          <div class="ncard" data-i="0"><div class="nh"><span class="napp"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg></span><span class="nname">Telegram</span><span class="ntime">сейчас</span></div><b>Сергей</b><p><span class="nf">«О&nbsp;компании» на&nbsp;первой странице.</span> Полторы страницы про&nbsp;агентство до&nbsp;первого слова о&nbsp;нас. Закрыл раньше, чем&nbsp;дошел до&nbsp;сути.</p></div>
-          <div class="ncard" data-i="1"><div class="nh"><span class="napp"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg></span><span class="nname">Telegram</span><span class="ntime">сейчас</span></div><b>Сергей</b><p><span class="nf">Ни&nbsp;одной цифры про&nbsp;нас.</span> Ни&nbsp;оборота, ни&nbsp;заказов, ни&nbsp;звонков «СтройМаркета». Только цифры про&nbsp;агентство.</p></div>
-          <div class="ncard" data-i="2"><div class="nh"><span class="napp"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg></span><span class="nname">Telegram</span><span class="ntime">сейчас</span></div><b>Дмитрий</b><p><span class="nf">Фичи ради фич.</span> Motion, чат-бот, калькулятор. Три пункта без&nbsp;привязки к&nbsp;задаче, и&nbsp;все&nbsp;лягут на&nbsp;меня.</p></div>
-          <div class="ncard" data-i="3"><div class="nh"><span class="napp"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg></span><span class="nname">Telegram</span><span class="ntime">сейчас</span></div><b>Ольга</b><p><span class="nf">«Сильная команда» без&nbsp;содержания.</span> Опытная, индивидуальная, гарантированная. Такое можно вставить в&nbsp;любое КП.</p></div>
-          <div class="ncard" data-i="4"><div class="nh"><span class="napp"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg></span><span class="nname">Telegram</span><span class="ntime">сейчас</span></div><b>Сергей</b><p><span class="nf">T&amp;M мелким шрифтом.</span> Подан как&nbsp;оговорка. Читается как&nbsp;«цена вырастет».</p></div>
-          <div class="ncard" data-i="5"><div class="nh"><span class="napp"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path fill="#fff" d="M5.5 11.7l11-4.3c.5-.2 1 .1.8.9l-1.9 8.9c-.1.6-.5.8-1 .5l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.2-4.7c.2-.2-.1-.3-.3-.2l-6.5 4.1-2.8-.9c-.6-.2-.6-.6.1-.9z"/></svg></span><span class="nname">Telegram</span><span class="ntime">сейчас</span></div><b>Ольга</b><p><span class="nf">Логотипы без&nbsp;результатов.</span> Восемь брендов, ноль историй. Ни&nbsp;одну не&nbsp;пересказать наверху.</p></div>
-            <div class="nhint" id="nhint" hidden>Telegram, 6 уведомлений</div>
-          </div>
+          <div class="narea" id="nstack"></div>
           <div class="lock-bottom">
             <button type="button" class="ctl" id="torch" aria-label="Фонарик"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8 3h8v3l-2 3v12H10V9L8 6z" fill="currentColor"/></svg></button>
             <button type="button" class="ctl" id="cam" aria-label="Камера"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="3" fill="currentColor"/><path d="M9 4h6l1.5 3h-9z" fill="currentColor"/><circle cx="12" cy="13.5" r="3.5" fill="#1b1b1f"/></svg></button>
@@ -824,16 +947,7 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
         </div>
       </div>
       </div>
-      <div class="holds">
-        <div class="holds-h">Что&nbsp;уже&nbsp;держит</div>
-        <ul>
-          <li><span class="hc"></span><span><b>Постатейная смета.</b> Каждый этап с&nbsp;ценой, без&nbsp;«итого» одной строкой. Сергей это&nbsp;ценит, даже если сумма не&nbsp;нравится.</span></li>
-          <li><span class="hc"></span><span><b>Этапы с&nbsp;неделями.</b> Четыре понятных шага и&nbsp;честные 16&nbsp;недель. Ольге есть что&nbsp;показать.</span></li>
-          <li><span class="hc"></span><span><b>Интеграция с&nbsp;1С названа.</b> Единственное, что&nbsp;искал Дмитрий, и&nbsp;он&nbsp;это&nbsp;нашел.</span></li>
-          <li><span class="hc"></span><span><b>Адаптив и&nbsp;SEO по&nbsp;делу.</b> Для&nbsp;ритейла это&nbsp;база, и&nbsp;хорошо, что&nbsp;она есть, без&nbsp;надувания.</span></li>
-          <li><span class="hc"></span><span><b>Нет разбега в&nbsp;смете.</b> Одна цифра, без&nbsp;«от&nbsp;1,8 до&nbsp;3,6&nbsp;млн». Целое возражение снято заранее.</span></li>
-        </ul>
-      </div>
+      <div class="holds"></div>
     </div>
   </div>
 </section>
@@ -843,35 +957,7 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
     <h2 class="rv">Исправленная первая страница</h2>
     <p class="lead prose rv">Шесть «стало» из&nbsp;разбора, собранные в&nbsp;том порядке, в&nbsp;котором прочитает ваш клиент: сначала клиент, потом вы. Цифры в&nbsp;скобках заполняются из&nbsp;брифинга.</p>
     <div class="doc rv" id="doc">
-      <div class="doc-p" id="docp">
-        <div class="mail-bar"><span class="mail-back">Входящие</span><span class="mail-cnt">1 из 3</span></div>
-        <div class="doc-head">
-          <span class="mav">ПЛ</span>
-          <div class="mhd">
-            <div class="mrow"><b class="mfrom">Пиксель Лаб</b><span class="mdate">21 авг. 2026 г., 10:12</span></div>
-            <div class="mto">Кому: Ольга <span class="mchev"></span></div>
-          </div>
-        </div>
-        <div class="msubj">КП №0417. Сайт с&nbsp;каталогом и&nbsp;онлайн-заказом</div>
-        <div class="ds stay" style="--i:0"><div class="doc-kicker">Коммерческое предложение</div><h3 class="doc-title">Сайт с&nbsp;каталогом и&nbsp;онлайн-заказом</h3><p class="doc-sub">Первая страница. Этапы, смета и&nbsp;условия идут дальше без&nbsp;изменений.</p></div>
-        <div class="doc-body" id="docBody">
-          <div class="doc-cta" id="docCta">
-            <div class="doc-cta-card">
-              <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="var(--accent)"/><path d="M14 2v5h5" fill="#fff" fill-opacity=".55"/><rect x="7.5" y="11" width="9" height="1.6" rx=".8" fill="#fff"/><rect x="7.5" y="14.2" width="9" height="1.6" rx=".8" fill="#fff"/><rect x="7.5" y="17.4" width="6" height="1.6" rx=".8" fill="#fff"/></svg>
-              <b>Первая страница собрана</b>
-              <p>Шесть исправленных разделов в&nbsp;том порядке, в&nbsp;котором прочитает ваш клиент. Разверните, чтобы прочитать целиком и&nbsp;скачать в&nbsp;Word или&nbsp;PDF.</p>
-              <button class="assemble" type="button" id="assemble">Развернуть страницу<svg viewBox="0 0 12 8" width="12" height="8" aria-hidden="true"><path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-            </div>
-          </div>
-          <div class="ds" style="--i:1"><h4>Что&nbsp;происходит сейчас</h4><p>Сейчас заказ у&nbsp;вас идет через звонок в&nbsp;магазин: менеджер вручную сверяет остатки в&nbsp;1С и&nbsp;перезванивает. На&nbsp;это&nbsp;уходит до <span class="ph">[N минут]</span> на&nbsp;заказ, а <span class="ph">[доля]</span> клиентов за&nbsp;это&nbsp;время уходит к&nbsp;тем, у&nbsp;кого остатки видно онлайн. Сайт нужен, чтобы закрыть эту дыру. «У&nbsp;конкурентов уже&nbsp;есть» здесь второй аргумент.</p></div>
-          <div class="ds" style="--i:2"><h4>Цель проекта, как&nbsp;мы&nbsp;ее&nbsp;услышали</h4><p>За&nbsp;6&nbsp;месяцев после запуска перевести <span class="ph">[15%]</span> розничных заказов в&nbsp;онлайн и&nbsp;снять с&nbsp;менеджеров магазинов <span class="ph">[треть]</span> звонков по&nbsp;остаткам. Меряем: доля онлайн-заказов, среднее время от&nbsp;заказа до&nbsp;подтверждения, число звонков в&nbsp;магазины. Если у&nbsp;вас другие приоритеты, мы&nbsp;перестроим решение под&nbsp;них до&nbsp;старта.</p></div>
-          <div class="ds" style="--i:3"><h4>Что&nbsp;делаем и&nbsp;зачем</h4><p>Каталог с&nbsp;живыми остатками из&nbsp;1С: клиент видит, есть&nbsp;ли&nbsp;товар в&nbsp;его&nbsp;магазине, и&nbsp;не&nbsp;звонит. Корзина и&nbsp;заказ с&nbsp;самовывозом из&nbsp;выбранного магазина: закрывает цель по&nbsp;онлайн-заказам. Чат-бот и&nbsp;калькулятор материалов в&nbsp;базовый объем не&nbsp;включаем: они требуют, чтобы кто-то на&nbsp;вашей стороне их&nbsp;вел. Вернемся к&nbsp;ним после запуска, если аналитика покажет спрос.</p></div>
-          <div class="ds" style="--i:4"><h4>Как&nbsp;работаем и&nbsp;что&nbsp;нужно от&nbsp;вас</h4><p>Четыре этапа, 16&nbsp;недель: аналитика, дизайн, разработка, запуск. На&nbsp;каждом этапе от&nbsp;вас нужны доступы к&nbsp;1С, контент и&nbsp;одно согласование. Фиксированная стоимость покрывает весь объем. Если по&nbsp;ходу появятся задачи вне его, мы&nbsp;оцениваем их&nbsp;отдельно по&nbsp;3&nbsp;500&nbsp;руб/час, согласуем письменно до&nbsp;начала и&nbsp;не&nbsp;запускаем без&nbsp;вашего «да». За&nbsp;16&nbsp;недель по&nbsp;нашим проектам такого объема это&nbsp;обычно от&nbsp;0 до <span class="ph">[N]</span> часов.</p></div>
-          <div class="ds" style="--i:5"><h4>Кто&nbsp;делает и&nbsp;что&nbsp;уже&nbsp;сделали</h4><p>В&nbsp;2025 мы&nbsp;запустили каталог с&nbsp;остатками из&nbsp;1С для <span class="ph">[сеть, отрасль]</span>: за&nbsp;первые 4&nbsp;месяца <span class="ph">[N%]</span> заказов ушло в&nbsp;онлайн, звонков в&nbsp;магазины стало на <span class="ph">[N%]</span> меньше. Проект вели те&nbsp;же&nbsp;люди, что&nbsp;будут на&nbsp;вашем: <span class="ph">[имя]</span>, руководитель проекта, 6 лет в&nbsp;ритейл-интеграциях; <span class="ph">[имя]</span>, разработчик, делал связку с&nbsp;1С у&nbsp;трех сетей. Готовы дать контакт заказчика.</p></div>
-          <div class="ds" style="--i:6"><h4>Как&nbsp;вы&nbsp;ничем не&nbsp;рискуете</h4><p>Оплата по&nbsp;этапам: 20% на&nbsp;старте, дальше по&nbsp;приемке каждого этапа, остаток после запуска. Каждый этап заканчивается демонстрацией и&nbsp;вашим письменным «принято». За&nbsp;проект отвечает <span class="ph">[имя]</span>, с&nbsp;ним связь напрямую. Если срок сдвигается по&nbsp;нашей вине, этап оплачивается после фактической сдачи, без&nbsp;доплат. После запуска 2&nbsp;месяца гарантийной поддержки входят в&nbsp;стоимость, дальше <span class="ph">[N]</span> руб/мес, включая обновления связки с&nbsp;1С.</p></div>
-        </div>
-        <div class="doc-foot ds" style="--i:7">Пиксель Лаб. Алексей Р., менеджер проекта. +7 (9xx) xxx-xx-xx, alexey@pixel-lab.example</div>
-      </div>
+      <div class="doc-p" id="docp"></div>
       <div class="doc-actions">
         <div class="dl-group" id="dlGroup" hidden>
           <button type="button" class="dl" id="dlWord"><svg class="fic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="#2B579A"/><path d="M5.6 7.5h2.1l1.4 6.2 1.6-6.2h1.9l1.6 6.2 1.4-6.2h2.1l-2.5 9h-2l-1.6-6-1.6 6h-2z" fill="#fff"/></svg>Скачать Word</button>
@@ -885,36 +971,7 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
 <section id="s-plan">
   <div class="wrap">
     <h2 class="rv">Что&nbsp;сделать за&nbsp;час</h2>
-    <div class="hour rv" id="hour">
-      <div class="timer">
-        <div class="ring">
-          <svg viewBox="0 0 300 300" width="300" height="300" aria-hidden="true">
-            <circle cx="150" cy="150" r="118" fill="none" stroke="var(--line)" stroke-width="14"/>
-            <circle class="seg" cx="150" cy="150" r="118" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="116.57 741.42" stroke-dashoffset="116.57" transform="rotate(-88.301 150 150)" style="--d:0ms"/>
-            <circle class="seg" cx="150" cy="150" r="118" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="240.14 741.42" stroke-dashoffset="240.14" transform="rotate(-28.301 150 150)" style="--d:140ms"/>
-            <circle class="seg" cx="150" cy="150" r="118" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="54.78 741.42" stroke-dashoffset="54.78" transform="rotate(91.699 150 150)" style="--d:280ms"/>
-            <circle class="seg" cx="150" cy="150" r="118" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="178.35 741.42" stroke-dashoffset="178.35" transform="rotate(121.699 150 150)" style="--d:420ms"/>
-            <circle class="seg" cx="150" cy="150" r="118" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="116.57 741.42" stroke-dashoffset="116.57" transform="rotate(211.699 150 150)" style="--d:560ms"/>
-            <circle class="prog" id="prog" cx="150" cy="150" r="118" fill="none" stroke="#FF9F0A" stroke-width="14" stroke-linecap="round" stroke-dasharray="0 741.42" transform="rotate(-90 150 150)"/>
-          </svg>
-          <div class="ring-c">
-            <div class="tleft" id="tleft">60:00</div>
-            <div class="tlabel" id="tlabel">Пять правок, один час</div>
-          </div>
-        </div>
-        <div class="tctl">
-          <button type="button" class="tbtn cancel" id="tcancel">Отмена</button>
-          <button type="button" class="tbtn start" id="tstart">Старт</button>
-        </div>
-      </div>
-      <ol class="plan" id="plan">
-        <li data-min="10"><span class="pn"><i>1</i></span><span class="t">Поменять местами: сначала клиент, потом вы<span>«О&nbsp;компании» уезжает в&nbsp;конец, на&nbsp;первую страницу встает проблема «СтройМаркета» и&nbsp;цель. Ноль новых слов, другой порядок.</span></span><span class="m">10&nbsp;мин</span></li>
-        <li data-min="20"><span class="pn"><i>2</i></span><span class="t">Написать цель как&nbsp;гипотезу с&nbsp;вопросом<span>Две-три метрики из&nbsp;блока 2 и&nbsp;фраза «поправьте нас». Это&nbsp;единственный пункт, где&nbsp;придется думать, остальное перестановки.</span></span><span class="m">20&nbsp;мин</span></li>
-        <li data-min="5"><span class="pn"><i>3</i></span><span class="t">Убрать motion, чат-бот и&nbsp;калькулятор в&nbsp;«опционально»<span>Список решений станет короче и&nbsp;целиком привязанным к&nbsp;цели. Клиент увидит, что&nbsp;вы&nbsp;умеете отказываться.</span></span><span class="m">5&nbsp;мин</span></li>
-        <li data-min="15"><span class="pn"><i>4</i></span><span class="t">Заменить «Почему мы» на&nbsp;один кейс и&nbsp;двух людей<span>Отрасль, цифра, имена. Восемь логотипов можно оставить ниже, но&nbsp;подписать, что&nbsp;сделано.</span></span><span class="m">15&nbsp;мин</span></li>
-        <li data-min="10"><span class="pn"><i>5</i></span><span class="t">Переписать оплату на&nbsp;этапную и&nbsp;объяснить T&amp;M<span>Снимает страх Сергея и&nbsp;главный вопрос Дмитрия про&nbsp;поддержку. Два абзаца из&nbsp;блоков 4 и&nbsp;6.</span></span><span class="m">10&nbsp;мин</span></li>
-      </ol>
-    </div>
+    <div class="hour rv" id="hour"></div>
   </div>
 </section>
 
@@ -965,72 +1022,7 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
 <section id="s-source">
   <div class="wrap">
     <h2 class="rv">Исходное КП</h2>
-    <details class="rv">
-      <summary>Полный текст КП №0417, «Пиксель Лаб» для&nbsp;ООО «СтройМаркет»</summary>
-      <div class="kp">
-        <p class="fine">Компании и&nbsp;люди вымышлены. Документ собран как&nbsp;типовое КП среднего digital-агентства для&nbsp;проверки методики.</p>
-        <h3 class="h0">Коммерческое предложение №0417 от&nbsp;21.08.2026</h3>
-        <p>Разработка корпоративного сайта с&nbsp;каталогом и&nbsp;функцией онлайн-заказа для&nbsp;ООО «СтройМаркет»</p>
-        <h3>1. О&nbsp;компании</h3>
-        <p>Digital-агентство «Пиксель Лаб» работает на&nbsp;рынке веб-разработки с&nbsp;2018 года. За&nbsp;это&nbsp;время мы&nbsp;реализовали более 200 проектов различной сложности для&nbsp;клиентов из&nbsp;сфер ритейла, производства, финансов и&nbsp;услуг. Наша команда состоит из&nbsp;опытных профессионалов: аналитиков, UX/UI-дизайнеров, frontend- и&nbsp;backend-разработчиков, тестировщиков и&nbsp;проектных менеджеров.</p>
-        <p>Мы&nbsp;придерживаемся индивидуального подхода к&nbsp;каждому проекту и&nbsp;ориентируемся на&nbsp;достижение бизнес-результатов наших клиентов. Наши ключевые ценности: качество, прозрачность, соблюдение сроков и&nbsp;долгосрочное партнерство.</p>
-        <p>Агентство входит в&nbsp;ТОП-100 веб-студий региона по&nbsp;версии отраслевого рейтинга и&nbsp;является сертифицированным партнером ряда технологических платформ.</p>
-        <h3>2. Понимание задачи</h3>
-        <p id="src-1">Мы&nbsp;понимаем, что&nbsp;вам необходим современный, удобный сайт с&nbsp;каталогом продукции и&nbsp;возможностью онлайн-заказа, который будет соответствовать актуальным трендам и&nbsp;ожиданиям ваших клиентов. Сайт должен подчеркивать статус компании как&nbsp;одного из&nbsp;лидеров регионального рынка строительных материалов, обеспечивать удобную навигацию по&nbsp;ассортименту и&nbsp;способствовать повышению узнаваемости бренда и&nbsp;лояльности клиентов.</p>
-        <h3>3. Предлагаемое решение</h3>
-        <p>Для&nbsp;реализации поставленной задачи мы&nbsp;предлагаем комплексное решение, включающее:</p>
-        <ul id="src-3">
-          <li>Аналитику и&nbsp;проектирование: исследование конкурентов, разработку структуры сайта и&nbsp;пользовательских сценариев.</li>
-          <li>UX/UI-дизайн: разработку уникального современного дизайна с&nbsp;учетом фирменного стиля компании.</li>
-          <li>Адаптивную верстку для&nbsp;корректного отображения на&nbsp;всех устройствах.</li>
-          <li>Каталог продукции с&nbsp;фильтрацией, поиском и&nbsp;удобной карточкой товара.</li>
-          <li>Корзину и&nbsp;оформление заказа.</li>
-          <li>Интеграцию с&nbsp;1С для&nbsp;синхронизации номенклатуры, цен и&nbsp;остатков.</li>
-          <li>Личный кабинет клиента с&nbsp;историей заказов.</li>
-          <li>Калькулятор строительных материалов для&nbsp;расчета необходимого количества.</li>
-          <li>Motion-анимации для&nbsp;современного, динамичного восприятия сайта.</li>
-          <li>Чат-бот для&nbsp;оперативной консультации клиентов 24/7.</li>
-          <li>Базовую SEO-оптимизацию для&nbsp;продвижения в&nbsp;поисковых системах.</li>
-        </ul>
-        <h3>4. Этапы и&nbsp;сроки</h3>
-        <table>
-          <thead><tr><th>Этап</th><th>Содержание</th><th>Срок</th></tr></thead>
-          <tbody>
-            <tr><td>1. Аналитика</td><td>Исследование, структура, прототипы</td><td>2&nbsp;недели</td></tr>
-            <tr><td>2. Дизайн</td><td>Дизайн-концепция, макеты всех страниц</td><td>4&nbsp;недели</td></tr>
-            <tr><td>3. Разработка</td><td>Верстка, программирование, интеграция с&nbsp;1С</td><td>8&nbsp;недель</td></tr>
-            <tr><td>4. Тестирование и&nbsp;запуск</td><td>Тестирование, наполнение, перенос на&nbsp;хостинг</td><td>2&nbsp;недели</td></tr>
-          </tbody>
-        </table>
-        <p>Общий срок реализации: 16&nbsp;недель.</p>
-        <h3>5. Стоимость</h3>
-        <table>
-          <thead><tr><th>Этап</th><th>Стоимость, руб.</th></tr></thead>
-          <tbody>
-            <tr><td>Аналитика и&nbsp;проектирование</td><td>240&nbsp;000</td></tr>
-            <tr><td>UX/UI-дизайн</td><td>480&nbsp;000</td></tr>
-            <tr><td>Разработка и&nbsp;интеграции</td><td>1&nbsp;440 000</td></tr>
-            <tr><td>Тестирование и&nbsp;запуск</td><td>240&nbsp;000</td></tr>
-            <tr><td><b>Итого</b></td><td><b>2&nbsp;400 000</b></td></tr>
-          </tbody>
-        </table>
-        <p class="fine" id="src-4">Дополнительные работы вне объема оцениваются по&nbsp;Time &amp; Material, 3&nbsp;500&nbsp;руб/час. Стоимость хостинга и&nbsp;лицензий сторонних сервисов не&nbsp;включена.</p>
-        <h3>6. Почему мы</h3>
-        <ul id="src-5">
-          <li>Опытная команда профессионалов</li>
-          <li>Индивидуальный подход к&nbsp;каждому проекту</li>
-          <li>Гарантия качества</li>
-          <li>Работаем по&nbsp;договору</li>
-          <li>Более 200 реализованных проектов</li>
-        </ul>
-        <h3>7. Наши клиенты</h3>
-        <p>[Логотипы: Уралстрой, Дом-Сервис, Фаворит, Гринхаус, Металл-Профи, Квадрат, Лига Мебель, Ремонт-Сити]</p>
-        <h3>8. Условия</h3>
-        <p id="src-6">Работаем по&nbsp;договору. Предоплата 50%, остаток по&nbsp;завершении. Предложение действительно 30 дней.</p>
-        <h3>9. Контакты</h3>
-        <p>Менеджер проекта: Алексей Р. +7 (9xx) xxx-xx-xx, alexey@pixel-lab.example</p>
-      </div>
-    </details>
+    <details class="rv"></details>
   </div>
 </section>
 
@@ -1049,7 +1041,7 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
 </footer>
 
 <script>
-(function(){
+GK.init = function(){
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* scroll reveal */
@@ -1084,7 +1076,7 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
       timers.forEach(clearTimeout); timers = [];
       msgs.forEach(function(m){ m.classList.remove('in'); m.hidden = true; });
       typing.hidden = true; typing.classList.remove('on'); list.classList.remove('pad');
-      if (timer) { stopTick(); timer.classList.remove('stop'); timer.querySelector('span').textContent = 'Сергей читает файл'; tb.textContent = '0:00'; }
+      if (timer) { stopTick(); timer.classList.remove('stop'); timer.querySelector('span').textContent = timer.dataset.label; tb.textContent = '0:00'; }
     }
     function runChat(){
       resetChat();
@@ -1104,11 +1096,11 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
       });
     }
     /* stopwatch: story seconds */
-    var timer = document.getElementById('timer'), tb = timer && timer.querySelector('b'), tick = null, secs = 0;
-    function fmt(s){ return Math.floor(s/60) + ':' + ('0' + (s%60)).slice(-2); }
-    function startTimer(){ stopTick(); secs = 0; timer.classList.remove('stop'); tb.textContent = fmt(0); tick = setInterval(function(){ secs++; tb.textContent = fmt(secs); }, 300); }
+    var timer = document.getElementById('timer'), tb = timer && timer.querySelector('b'), chatTick = null, chatSecs = 0;
+    function fmtChat(s){ return Math.floor(s/60) + ':' + ('0' + (s%60)).slice(-2); }
+    function startTimer(){ stopTick(); chatSecs = 0; timer.classList.remove('stop'); tb.textContent = fmtChat(0); chatTick = setInterval(function(){ chatSecs++; tb.textContent = fmtChat(chatSecs); }, 300); }
     function stopTimer(){ stopTick(); timer.classList.add('stop'); timer.querySelector('span').textContent = 'Закрыл файл'; }
-    function stopTick(){ if (tick) { clearInterval(tick); tick = null; } }
+    function stopTick(){ if (chatTick) { clearInterval(chatTick); chatTick = null; } }
     document.getElementById('replay').addEventListener('click', runChat);
     if (reduce || !('IntersectionObserver' in window)) { runChat(); }
     else {
@@ -1236,7 +1228,7 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
     function say(msg){ if (note) note.textContent = msg; }
     document.getElementById('dlWord').addEventListener('click', function(){
       if (!window.JSZip) { say('Библиотека для Word не загрузилась'); return; }
-      var name = 'КП СтройМаркет, первая страница.docx';
+      var name = 'КП ' + GK.clientShort(GK.data) + ', первая страница.docx';
       buildDocx().then(function(blob){
         var viaClaude = (window.claude && typeof claude.use === 'function') ? claude.use('downloads') : Promise.resolve(null);
         return viaClaude.then(function(dl){
@@ -1274,17 +1266,6 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
       });
     }
     window.addEventListener('scroll', tocScroll, { passive:true }); tocScroll();
-  }
-
-  /* note date: exact Moscow time at render */
-  var nd = document.getElementById('noteDate');
-  if (nd && window.Intl) {
-    try {
-      var d = new Date();
-      var day = new Intl.DateTimeFormat('ru-RU', { timeZone:'Europe/Moscow', day:'numeric', month:'long', year:'numeric' }).format(d).replace(/\s*г\.?$/, '');
-      var tm = new Intl.DateTimeFormat('ru-RU', { timeZone:'Europe/Moscow', hour:'2-digit', minute:'2-digit' }).format(d);
-      nd.textContent = day + ', ' + tm + ' МСК';
-    } catch (e) {}
   }
 
   /* lock screen: notifications stack at the bottom, screen never grows */
@@ -1327,13 +1308,6 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
     lock.addEventListener('click', function(){ if (arrived) setOpen(!nopen); });
     narea.addEventListener('click', function(e){ if (nopen) e.stopPropagation(); });
     window.addEventListener('resize', function(){ if (!nopen && arrived) layoutStack(); });
-    var lt = document.getElementById('lockTime');
-    try {
-      var now = new Date();
-      lt.textContent = new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'}).format(now);
-      var ld = new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',weekday:'long',day:'numeric',month:'long'}).format(now);
-      document.getElementById('lockDate').textContent = ld.charAt(0).toUpperCase() + ld.slice(1);
-    } catch(e){}
     if (reduce || !('IntersectionObserver' in window)) runLock();
     else { var lio = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ runLock(); lio.disconnect(); } }); }, { threshold: 0.3 }); lio.observe(lock); }
   }
@@ -1399,7 +1373,7 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
       });
       if (elapsed >= total) { tlabel.textContent = 'Час прошел. КП готово к отправке'; rows.forEach(function(r){ r.classList.add('done'); r.classList.remove('cur'); }); }
       else if (cur >= 0) { var a = 0; for (var k=0;k<cur;k++) a += durs[k]; tlabel.textContent = 'Правка ' + (cur+1) + ' из ' + rows.length + ', еще ' + fmt(a + durs[cur] - elapsed); }
-      else tlabel.textContent = 'Пять правок, один час';
+      else tlabel.textContent = GK.planLabel(GK.data);
     }
     function setRunning(on){
       running = on; startBtn.textContent = on ? 'Пауза' : 'Старт';
@@ -1425,7 +1399,7 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
     var wave = document.getElementById('wave'), mq = document.getElementById('memoQ'), mt = document.getElementById('memoTime'), ml = document.getElementById('memoLeft'), mp = document.getElementById('memoPlay'), ph = document.getElementById('playhead');
     var seed = 7; function rnd(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
     for (var wi = 0; wi < 96; wi++) { var bar = document.createElement('i'); bar.style.setProperty('--h', Math.round(12 + Math.pow(rnd(),1.4)*80) + '%'); bar.style.setProperty('--dl', (rnd()*0.8).toFixed(2) + 's'); wave.appendChild(bar); }
-    var bars = wave.querySelectorAll('i'), wordsEl = mq.querySelectorAll('span'), DUR = 14000, raf = null, t0 = 0, pos = 0, playing = false;
+    var bars = wave.querySelectorAll('i'), wordsEl = mq.querySelectorAll('span'), DUR = GK.memoSecs(GK.data) * 1000, raf = null, t0 = 0, pos = 0, playing = false;
     function fmtm(ms){ var s = Math.floor(ms/1000); return Math.floor(s/60) + ':' + ('0' + (s%60)).slice(-2); }
     function paint(el){
       var p = Math.max(0, Math.min(1, el / DUR));
@@ -1450,7 +1424,6 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
     ww.addEventListener('pointermove', function(ev){ if (scrubbing) scrubTo(ev); });
     ww.addEventListener('pointerup', function(){ scrubbing = false; });
     ww.addEventListener('pointercancel', function(){ scrubbing = false; });
-    try { document.getElementById('memoDate').textContent = new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',day:'numeric',month:'long',year:'numeric'}).format(new Date()).replace(/\s*г\.?$/,'') + ', ' + new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'}).format(new Date()); } catch(e){}
     window.addEventListener('resize', function(){ paint(pos); });
     paint(0);
   }
@@ -1465,5 +1438,6 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
       ba.querySelector('.ba-text .now').hidden = b.dataset.v !== 'now';
     }); });
   });
-})();
+};
 </script>
+<script>if (GK.boot()) GK.init();</script>
