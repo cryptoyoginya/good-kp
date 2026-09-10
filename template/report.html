@@ -365,7 +365,6 @@ details[open] summary::before{transform:rotate(45deg)}
 .pillnav a{font-size:13.5px;font-weight:500;color:var(--sub);padding:7px 13px;border-radius:999px;white-space:nowrap;transition:background .25s var(--ease),color .25s var(--ease)}
 .pillnav a:hover{text-decoration:none;color:var(--ink)}
 .pillnav a.cur{background:var(--ink);color:var(--bg)}
-.pillnav{scroll-snap-type:x proximity}
 @media (max-width:640px){.pillnav{justify-content:flex-start}}
 @media (prefers-reduced-motion: reduce){.pillnav a{transition:none}}
 
@@ -428,7 +427,7 @@ details[open] summary::before{transform:rotate(45deg)}
 .dl{display:inline-flex;align-items:center;gap:9px;font:inherit;font-size:15px;font-weight:600;color:var(--ink);background:var(--card);border:0;border-radius:999px;padding:9px 18px 9px 10px;cursor:pointer;box-shadow:var(--shadow);transition:transform .2s var(--ease)}
 .dl .fic{flex:none}
 .dl:hover{transform:translateY(-1px)}
-.dl-note{font-size:12.5px;color:var(--faint)}
+.dl-note{margin-top:10px;font-size:13px;color:var(--sub);min-height:1.2em}
 @media (prefers-reduced-motion:reduce){.ds,.doc-body,.doc-body::after{transition:none}}
 @media print{body.print-doc>*{display:none!important}body.print-doc #print-host{display:block!important}#print-host{display:none}}
 
@@ -509,6 +508,8 @@ window.GK = (function(){
   function mailDate(iso){ return fmtDate(iso, { day: 'numeric', month: 'short', year: 'numeric' }); }
   function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
   function numWord(n){ return NUM[n] != null ? NUM[n] : String(n); }
+  /* форма при числительном; при нуле отрицание: «не провалена» */
+  function agree(n, one, few, many){ return n === 0 ? 'не ' + one : plural(n, one, few, many); }
   function plural(n, one, few, many){
     var a = Math.abs(n) % 100, b = a % 10;
     if (a > 10 && a < 20) return many;
@@ -534,7 +535,7 @@ window.GK = (function(){
   }
   return { esc: esc, nb: nb, ph: ph, h: h, fmtDate: fmtDate, ddmmyyyy: ddmmyyyy,
            dateLong: dateLong, timeShort: timeShort, stamp: stamp, weekDate: weekDate,
-           mailDate: mailDate, cap: cap, numWord: numWord, plural: plural, mmss: mmss,
+           mailDate: mailDate, cap: cap, numWord: numWord, plural: plural, agree: agree, mmss: mmss,
            words: words, clientShort: clientShort, memoSecs: memoSecs, planLabel: planLabel,
            stopLabel: stopLabel, renderers: {} };
 })();
@@ -570,8 +571,10 @@ window.GK = (function(){
   R.hero = function(d){
     var c = { crit: 0, weak: 0, ok: 0 };
     d.blocks.forEach(function(b){ c[b.state]++; });
-    var lead = GK.cap(GK.numWord(c.crit)) + ' из шести опор провалены, ' +
-      GK.numWord(c.weak) + ' шатаются, ' + GK.numWord(c.ok) + ' держит.';
+    var lead = GK.cap(GK.numWord(c.crit)) + ' из шести опор ' +
+      GK.agree(c.crit, 'провалена', 'провалены', 'провалены') + ', ' +
+      GK.numWord(c.weak) + ' ' + GK.agree(c.weak, 'шатается', 'шатаются', 'шатаются') + ', ' +
+      GK.numWord(c.ok) + ' ' + GK.agree(c.ok, 'держит', 'держат', 'держат') + '.';
     var champion = d.readers[1], decider = d.readers[0];
     var p = lead + ' Тому, кто продвигает проект внутри клиента: ' + champion.outcome +
       ' Тому, кто платит: ' + decider.outcome;
@@ -584,9 +587,9 @@ window.GK = (function(){
     var names = [];
     d.chat.forEach(function(m){ if (m.side === 'them' && m.name && names.indexOf(m.name) < 0) names.push(m.name); });
     var label = d.readers[0].name + ' читает файл';
-    var head = '<div class="chat-h"><div class="chat-avs">' + names.map(function(n){ return '<span>' + esc(n[0]) + '</span>'; }).join('') + '</div>' +
+    var head = '<div class="chat-avs">' + names.map(function(n){ return '<span>' + esc(n[0]) + '</span>'; }).join('') + '</div>' +
       '<div class="chat-t"><b>' + nb('КП от ' + d.meta.vendor) + '</b><span>' + esc(names.join(', ')) + '</span></div>' +
-      '<div class="chat-timer" id="timer" data-label="' + esc(label) + '"><span>' + esc(label) + '</span><b>0:00</b></div></div>';
+      '<div class="chat-timer" id="timer" data-label="' + esc(label) + '"><span>' + esc(label) + '</span><b>0:00</b></div>';
     var msgs = d.chat.map(function(m){
       var len = m.text.length;
       var attrs = { 'class': 'm ' + m.side, 'data-wait': m.side === 'me' ? 250 + Math.min(len * 15, 1250) : 330 + Math.min(len * 7, 750) };
@@ -770,8 +773,10 @@ window.GK = (function(){
       var id = ' id="' + esc(b.id) + '"';
       if (b.kind === 'h') { var c = firstH ? ' class="h0"' : ''; firstH = false; return '<h3' + c + id + '>' + nb(b.text) + '</h3>'; }
       if (b.kind === 'note') return '<p class="fine"' + id + '>' + nb(b.text) + '</p>';
-      if (b.kind === 'list') return '<ul' + id + '>' + b.items.map(function(x){ return '<li>' + nb(x) + '</li>'; }).join('') + '</ul>';
+      if (b.kind === 'list') { if (!b.items || !b.items.length) return '';
+        return '<ul' + id + '>' + b.items.map(function(x){ return '<li>' + nb(x) + '</li>'; }).join('') + '</ul>'; }
       if (b.kind === 'table') {
+        if (!b.rows || !b.rows.length) return '';
         var head = '<thead><tr>' + b.rows[0].map(function(c){ return '<th>' + nb(c) + '</th>'; }).join('') + '</tr></thead>';
         var rows = b.rows.slice(1).map(function(r){
           return '<tr>' + r.map(function(c){ return '<td>' + nb(c) + '</td>'; }).join('') + '</tr>';
@@ -792,7 +797,7 @@ window.GK = (function(){
     q('header .meta').innerHTML = R.header(d);
     q('.hero-t').innerHTML = R.hero(d);
     var c = R.chat(d);
-    q('#chat').insertAdjacentHTML('afterbegin', c.head);
+    q('#chatHead').innerHTML = c.head;
     q('#chat .msgs').innerHTML = c.msgs;
     q('#s-toc .note').innerHTML = R.toc(d);
     q('.intake').innerHTML = R.intake(d);
@@ -807,13 +812,29 @@ window.GK = (function(){
     document.title = 'Good КП: ' + GK.clientShort(d);
   };
 
+  /* повторный запуск: снять то, что навесил предыдущий init, и собрать заново */
+  GK.mount = function(d){
+    (GK._teardown || []).forEach(function(fn){ try { fn(); } catch (e) { console.error('Good КП: teardown', e); } });
+    GK._teardown = [];
+    GK.render(d);
+    GK.init();
+  };
+
+  var NEED = ['meta', 'intake', 'readers', 'chat', 'verdict', 'blocks',
+              'flags', 'holds', 'fixed_page', 'plan', 'source'];
+  function nodata(msg){
+    document.body.classList.add('nodata');
+    if (msg) { var box = document.querySelector('.nodata-msg'); if (box) box.textContent = msg; }
+  }
   GK.boot = function(){
     var el = document.getElementById('data'), txt = (el && el.textContent || '').trim();
-    if (!txt) { document.body.classList.add('nodata'); return false; }
+    if (!txt) { nodata(); return false; }
     var d;
-    try { d = JSON.parse(txt); } catch (e) { document.body.classList.add('nodata'); console.error('Good КП: JSON не разобран', e); return false; }
-    if (d.refusal) { document.body.classList.add('nodata'); console.error('Good КП: отказ', d.refusal.reason); return false; }
-    try { GK.render(d); } catch (e) { document.body.classList.add('nodata'); console.error('Good КП: рендер упал', e); return false; }
+    try { d = JSON.parse(txt); } catch (e) { nodata(); console.error('Good КП: JSON не разобран', e); return false; }
+    if (d.refusal) { nodata(); console.error('Good КП: отказ', d.refusal.reason); return false; }
+    var missing = NEED.filter(function(k){ return d[k] == null; });
+    if (missing.length) { nodata('В JSON нет полей: ' + missing.join(', ')); console.error('Good КП: нет полей', missing); return false; }
+    try { GK.mount(d); } catch (e) { nodata(); console.error('Good КП: рендер упал', e); return false; }
     return true;
   };
 })();
@@ -835,7 +856,7 @@ window.GK = (function(){
     <div class="hero-t"></div>
 
     <div class="chat" id="chat" aria-label="Как обсуждали это КП внутри клиента">
-      
+      <div class="chat-h" id="chatHead"></div>
       <div class="chat-b">
         <div class="msgs"></div>
         <div class="typing" id="typing" hidden><span></span><span></span><span></span></div>
@@ -846,7 +867,7 @@ window.GK = (function(){
 
 <main>
 
-<div class="nodata-msg">Нет данных. Вставьте report.json в блок <code>#data</code> или откройте страницу через docs/index.html.</div>
+<div class="nodata-msg">Нет данных. Вставьте report.json в блок <code>#data</code> или откройте страницу через paste.html.</div>
 
 <section id="s-toc" class="tocsec">
   <div class="wrap">
@@ -938,6 +959,7 @@ window.GK = (function(){
           <button type="button" class="dl" id="dlWord"><svg class="fic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="#2B579A"/><path d="M5.6 7.5h2.1l1.4 6.2 1.6-6.2h1.9l1.6 6.2 1.4-6.2h2.1l-2.5 9h-2l-1.6-6-1.6 6h-2z" fill="#fff"/></svg>Скачать Word</button>
           <button type="button" class="dl" id="dlPdf"><svg class="fic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="#E0342C"/><text x="12" y="15.6" text-anchor="middle" font-family="-apple-system,Helvetica,Arial,sans-serif" font-size="7.2" font-weight="700" fill="#fff">PDF</text></svg>Сохранить в&nbsp;PDF</button>
         </div>
+        <div class="dl-note" id="dlNote" aria-live="polite"></div>
       </div>
     </div>
   </div>
@@ -1019,19 +1041,25 @@ window.GK = (function(){
 GK.init = function(){
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* все подписки и таймеры регистрируются здесь, GK.mount снимает их перед повтором */
+  var teardown = GK._teardown = [];
+  function own(fn){ teardown.push(fn); }
+  function on(el, type, fn, opts){ if (!el) return; el.addEventListener(type, fn, opts); own(function(){ el.removeEventListener(type, fn, opts); }); }
+  function watch(io){ own(function(){ io.disconnect(); }); return io; }
+
   /* scroll reveal */
   var items = document.querySelectorAll('.rv, .pop');
   if (!('IntersectionObserver' in window) || reduce) {
     items.forEach(function(el){ el.classList.add('in'); });
   } else {
-    var io = new IntersectionObserver(function(entries){
+    var rvio = watch(new IntersectionObserver(function(entries){
       entries.forEach(function(e){
         if (!e.isIntersecting) return;
         e.target.classList.add('in');
-        io.unobserve(e.target);
+        rvio.unobserve(e.target);
       });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
-    items.forEach(function(el){ io.observe(el); });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 }));
+    items.forEach(function(el){ rvio.observe(el); });
   }
 
   /* iMessage chat */
@@ -1076,10 +1104,11 @@ GK.init = function(){
     function startTimer(){ stopTick(); chatSecs = 0; timer.classList.remove('stop'); tb.textContent = fmtChat(0); chatTick = setInterval(function(){ chatSecs++; tb.textContent = fmtChat(chatSecs); }, 300); }
     function stopTimer(){ stopTick(); timer.classList.add('stop'); timer.querySelector('span').textContent = GK.stopLabel(GK.data); }
     function stopTick(){ if (chatTick) { clearInterval(chatTick); chatTick = null; } }
-    document.getElementById('replay').addEventListener('click', runChat);
+    own(function(){ timers.forEach(clearTimeout); timers = []; stopTick(); });
+    on(document.getElementById('replay'), 'click', runChat);
     if (reduce || !('IntersectionObserver' in window)) { runChat(); }
     else {
-      var cio = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ runChat(); cio.disconnect(); } }); }, { threshold: 0.35 });
+      var cio = watch(new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ runChat(); cio.disconnect(); } }); }, { threshold: 0.35 }));
       cio.observe(chat);
     }
   }
@@ -1101,8 +1130,8 @@ GK.init = function(){
       thumb.style.transform = 'translateX(' + (i*100) + '%)';
       panes.forEach(function(p,j){ p.hidden = j!==i; if (j===i) play(p); });
     }
-    tabs.forEach(function(b){ b.addEventListener('click', function(){ select(+b.dataset.i); }); });
-    box.addEventListener('keydown', function(e){
+    tabs.forEach(function(b){ on(b, 'click', function(){ select(+b.dataset.i); }); });
+    on(box, 'keydown', function(e){
       if (e.key!=='ArrowRight' && e.key!=='ArrowLeft') return;
       var cur = [].findIndex.call(tabs, function(b){ return b.getAttribute('aria-selected')==='true'; });
       var n = (cur + (e.key==='ArrowRight'?1:-1) + tabs.length) % tabs.length;
@@ -1110,7 +1139,7 @@ GK.init = function(){
     });
     if (reduce || !('IntersectionObserver' in window)) { play(panes[0]); }
     else {
-      var rio = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ play(panes[0]); rio.disconnect(); } }); }, { threshold: 0.2 });
+      var rio = watch(new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ play(panes[0]); rio.disconnect(); } }); }, { threshold: 0.2 }));
       rio.observe(box);
     }
   }
@@ -1124,22 +1153,22 @@ GK.init = function(){
     function onScroll(){
       nav.classList.toggle('show', window.scrollY > (hero ? hero.offsetTop + hero.offsetHeight * 0.6 : 400));
     }
-    window.addEventListener('scroll', onScroll, { passive:true }); onScroll();
+    on(window, 'scroll', onScroll, { passive:true }); onScroll();
     var cur = -1;
     function setCur(i){
       if (i === cur) return; cur = i;
       links.forEach(function(a, k){ a.classList.toggle('cur', k === i); });
       var a = links[i]; if (a && a.scrollIntoView) a.scrollIntoView({ block: 'nearest', inline: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     }
-    var io = new IntersectionObserver(function(es){
+    var navio = watch(new IntersectionObserver(function(es){
       es.forEach(function(e){ if (e.isIntersecting) setCur(secs.indexOf(e.target)); });
-    }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
-    secs.forEach(function(s){ if (s) io.observe(s); });
+    }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 }));
+    secs.forEach(function(s){ if (s) navio.observe(s); });
   }
 
   /* find in source */
   document.querySelectorAll('.findsrc').forEach(function(a){
-    a.addEventListener('click', function(e){
+    on(a, 'click', function(e){
       e.preventDefault();
       var det = document.querySelector('#s-source details'); if (det) det.open = true;
       var el = document.getElementById(a.dataset.src); if (!el) return;
@@ -1152,8 +1181,8 @@ GK.init = function(){
   var doc = document.getElementById('doc'), asm = document.getElementById('assemble');
   if (doc && asm) {
     function openDoc(){ doc.classList.add('open'); document.getElementById('dlGroup').hidden = false; }
-    asm.addEventListener('click', function(e){ e.stopPropagation(); openDoc(); });
-    document.getElementById('docBody').addEventListener('click', function(){ if (!doc.classList.contains('open')) openDoc(); });
+    on(asm, 'click', function(e){ e.stopPropagation(); openDoc(); });
+    on(document.getElementById('docBody'), 'click', function(){ if (!doc.classList.contains('open')) openDoc(); });
     function docHtml(){
       var p = document.getElementById('docp').cloneNode(true);
       p.querySelectorAll('.ph').forEach(function(s){ s.replaceWith(document.createTextNode(s.textContent)); });
@@ -1207,7 +1236,7 @@ GK.init = function(){
     }
     var note = document.getElementById('dlNote');
     function say(msg){ if (note) note.textContent = msg; }
-    document.getElementById('dlWord').addEventListener('click', function(){
+    on(document.getElementById('dlWord'), 'click', function(){
       if (!window.JSZip) { say('Библиотека для Word не загрузилась'); return; }
       var name = 'КП ' + GK.clientShort(GK.data) + ', первая страница.docx';
       buildDocx().then(function(blob){
@@ -1216,7 +1245,7 @@ GK.init = function(){
         say('Сохранено');
       }).catch(function(){ say('Не получилось собрать файл. Попробуйте еще раз'); });
     });
-    document.getElementById('dlPdf').addEventListener('click', function(){
+    on(document.getElementById('dlPdf'), 'click', function(){
       var host = document.getElementById('print-host');
       if (!host) { host = document.createElement('div'); host.id = 'print-host'; document.body.appendChild(host); }
       host.innerHTML = '<style>#print-host .mail-bar{display:none}#print-host .msubj{font-size:14pt;font-weight:600;margin:6pt 0 14pt}#print-host .doc-head{display:flex;justify-content:space-between;border-bottom:1px solid #ddd;padding-bottom:10pt;margin-bottom:16pt}#print-host .mav{display:inline-block;width:26pt;height:26pt;border-radius:50%;background:#0071E3;color:#fff;font-weight:600;font-size:9pt;text-align:center;line-height:26pt;margin-right:8pt}#print-host .mhd{flex:1}#print-host .mrow{display:flex;justify-content:space-between}#print-host .mfrom{font-size:11pt}#print-host .mdate,#print-host .mto{color:#666;font-size:9pt}#print-host .msubj{font-size:10pt}#print-host .doc-kicker,#print-host .doc-sub{color:#666;font-size:9.5pt}#print-host h3{font-size:18pt;margin:4pt 0}#print-host h4{font-size:12pt;margin:14pt 0 4pt}#print-host p{margin:0}#print-host .doc-foot{margin-top:24pt;padding-top:8pt;border-top:1px solid #ddd;color:#666;font-size:9pt}</style><div style="font-family:-apple-system,Helvetica,Arial,sans-serif;max-width:720px;margin:0 auto;font-size:11.5pt;line-height:1.5">' + docHtml() + '</div>';
@@ -1238,7 +1267,7 @@ GK.init = function(){
         li.classList.toggle('done', s.getBoundingClientRect().bottom < mid);
       });
     }
-    window.addEventListener('scroll', tocScroll, { passive:true }); tocScroll();
+    on(window, 'scroll', tocScroll, { passive:true }); tocScroll();
   }
 
   /* lock screen: notifications stack at the bottom, screen never grows */
@@ -1278,11 +1307,12 @@ GK.init = function(){
     });
   }
   if (lock) {
-    lock.addEventListener('click', function(){ if (arrived) setOpen(!nopen); });
-    narea.addEventListener('click', function(e){ if (nopen) e.stopPropagation(); });
-    window.addEventListener('resize', function(){ if (!nopen && arrived) layoutStack(); });
+    own(function(){ ltimers.forEach(clearTimeout); ltimers = []; });
+    on(lock, 'click', function(){ if (arrived) setOpen(!nopen); });
+    on(narea, 'click', function(e){ if (nopen) e.stopPropagation(); });
+    on(window, 'resize', function(){ if (!nopen && arrived) layoutStack(); });
     if (reduce || !('IntersectionObserver' in window)) runLock();
-    else { var lio = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ runLock(); lio.disconnect(); } }); }, { threshold: 0.3 }); lio.observe(lock); }
+    else { var lio = watch(new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ runLock(); lio.disconnect(); } }); }, { threshold: 0.3 })); lio.observe(lock); }
   }
 
   /* flashlight: glow behind the phone. camera: live preview on the screen */
@@ -1290,9 +1320,11 @@ GK.init = function(){
   var camStream = null, toastT = null;
   function showToast(msg){ if (!toast) return; toast.textContent = msg; toast.hidden = false; clearTimeout(toastT); toastT = setTimeout(function(){ toast.hidden = true; }, 2400); }
   var pw = document.getElementById('phoneWrap');
-  if (torch) torch.addEventListener('click', function(e){ e.stopPropagation(); var on = !pw.classList.contains('lit'); pw.classList.toggle('lit', on); torch.classList.toggle('on', on); });
+  own(function(){ clearTimeout(toastT); });
+  if (camLayer) own(stopCam);
+  if (torch) on(torch, 'click', function(e){ e.stopPropagation(); var on = !pw.classList.contains('lit'); pw.classList.toggle('lit', on); torch.classList.toggle('on', on); });
   function stopCam(){ if (camStream) { camStream.getTracks().forEach(function(tr){ tr.stop(); }); camStream = null; } camVideo.srcObject = null; camLayer.hidden = true; camBtn.classList.remove('on'); }
-  if (camBtn) camBtn.addEventListener('click', function(e){
+  if (camBtn) on(camBtn, 'click', function(e){
     e.stopPropagation();
     if (!camLayer.hidden) { stopCam(); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showToast('Камера недоступна в этом окне'); return; }
@@ -1300,9 +1332,9 @@ GK.init = function(){
       camStream = s; camVideo.srcObject = s; camLayer.hidden = false; camBtn.classList.add('on');
     }).catch(function(){ showToast('Камера недоступна в этом окне'); });
   });
-  if (camClose) camClose.addEventListener('click', function(e){ e.stopPropagation(); stopCam(); });
-  if (camLayer) camLayer.addEventListener('click', function(e){ e.stopPropagation(); });
-  window.addEventListener('pagehide', stopCam);
+  if (camClose) on(camClose, 'click', function(e){ e.stopPropagation(); stopCam(); });
+  if (camLayer) on(camLayer, 'click', function(e){ e.stopPropagation(); });
+  on(window, 'pagehide', stopCam);
 
   /* method: sticky step indicator follows the scrolled step */
   var msticky = document.getElementById('msticky'), msteps = document.querySelectorAll('.mstep');
@@ -1317,9 +1349,9 @@ GK.init = function(){
       msticky.classList.add('swap');
       setTimeout(function(){ apply(); msticky.classList.remove('swap'); }, 220);
     }
-    var mio = new IntersectionObserver(function(es){
+    var mio = watch(new IntersectionObserver(function(es){
       es.forEach(function(e){ if (e.isIntersecting) setStep([].indexOf.call(msteps, e.target)); });
-    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 }));
     msteps.forEach(function(s){ mio.observe(s); });
   }
 
@@ -1353,14 +1385,15 @@ GK.init = function(){
       startBtn.classList.toggle('pause', on); startBtn.classList.toggle('start', !on);
       clearInterval(tick); if (on) tick = setInterval(function(){ elapsed++; if (elapsed >= total) { elapsed = total; setRunning(false); } render(); }, 1000);
     }
-    startBtn.addEventListener('click', function(){ if (elapsed >= total) { elapsed = 0; } setRunning(!running); render(); });
-    cancelBtn.addEventListener('click', function(){ setRunning(false); elapsed = 0; render(); });
+    own(function(){ clearInterval(tick); });
+    on(startBtn, 'click', function(){ if (elapsed >= total) { elapsed = 0; } setRunning(!running); render(); });
+    on(cancelBtn, 'click', function(){ setRunning(false); elapsed = 0; render(); });
     render();
   }
 
   /* blocks: expand/collapse */
   document.querySelectorAll('.block .brow').forEach(function(btn){
-    btn.addEventListener('click', function(){
+    on(btn, 'click', function(){
       var b = btn.closest('.block'), on = !b.classList.contains('open');
       b.classList.toggle('open', on); btn.setAttribute('aria-expanded', on ? 'true' : 'false');
     });
@@ -1384,27 +1417,28 @@ GK.init = function(){
     function frame(now){ pos = Math.min(DUR, now - t0); paint(pos); if (pos < DUR) raf = requestAnimationFrame(frame); else { stop(); pos = 0; } }
     function start(){ playing = true; memo.classList.add('playing','started'); t0 = performance.now() - pos; raf = requestAnimationFrame(frame); }
     function stop(){ playing = false; memo.classList.remove('playing'); cancelAnimationFrame(raf); }
-    mp.addEventListener('click', function(){
+    own(function(){ cancelAnimationFrame(raf); });
+    on(mp, 'click', function(){
       if (reduce) { memo.classList.add('started'); pos = DUR; paint(DUR); return; }
       if (playing) stop(); else start();
     });
     function seek(d){ pos = Math.max(0, Math.min(DUR, pos + d)); memo.classList.add('started'); if (playing) t0 = performance.now() - pos; paint(pos); }
-    document.getElementById('memoBack').addEventListener('click', function(){ seek(-5000); });
-    document.getElementById('memoFwd').addEventListener('click', function(){ seek(5000); });
+    on(document.getElementById('memoBack'), 'click', function(){ seek(-5000); });
+    on(document.getElementById('memoFwd'), 'click', function(){ seek(5000); });
     var ww = document.querySelector('.wave-wrap'), scrubbing = false;
     function scrubTo(ev){ var r = ww.getBoundingClientRect(); var x = Math.max(10, Math.min(r.width - 10, ev.clientX - r.left)); pos = ((x - 10) / (r.width - 20)) * DUR; memo.classList.add('started'); if (playing) t0 = performance.now() - pos; paint(pos); }
-    ww.addEventListener('pointerdown', function(ev){ scrubbing = true; ww.setPointerCapture(ev.pointerId); scrubTo(ev); });
-    ww.addEventListener('pointermove', function(ev){ if (scrubbing) scrubTo(ev); });
-    ww.addEventListener('pointerup', function(){ scrubbing = false; });
-    ww.addEventListener('pointercancel', function(){ scrubbing = false; });
-    window.addEventListener('resize', function(){ paint(pos); });
+    on(ww, 'pointerdown', function(ev){ scrubbing = true; ww.setPointerCapture(ev.pointerId); scrubTo(ev); });
+    on(ww, 'pointermove', function(ev){ if (scrubbing) scrubTo(ev); });
+    on(ww, 'pointerup', function(){ scrubbing = false; });
+    on(ww, 'pointercancel', function(){ scrubbing = false; });
+    on(window, 'resize', function(){ paint(pos); });
     paint(0);
   }
 
   /* before/after toggles inside blocks */
   document.querySelectorAll('.ba').forEach(function(ba){
     var tabs = ba.querySelectorAll('[role="tab"]'), thumb = ba.querySelector('.thumb');
-    tabs.forEach(function(b,i){ b.addEventListener('click', function(){
+    tabs.forEach(function(b,i){ on(b, 'click', function(){
       tabs.forEach(function(x,j){ x.setAttribute('aria-selected', j===i?'true':'false'); });
       thumb.style.transform = 'translateX(' + (i*100) + '%)';
       ba.querySelector('.ba-text .was').hidden = b.dataset.v !== 'was';
@@ -1413,4 +1447,4 @@ GK.init = function(){
   });
 };
 </script>
-<script>if (GK.boot()) GK.init();</script>
+<script>GK.boot();</script>
