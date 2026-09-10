@@ -1203,18 +1203,10 @@ GK.init = function(){
       if (!window.JSZip) { say('Библиотека для Word не загрузилась'); return; }
       var name = 'КП ' + GK.clientShort(GK.data) + ', первая страница.docx';
       buildDocx().then(function(blob){
-        var viaClaude = (window.claude && typeof claude.use === 'function') ? claude.use('downloads') : Promise.resolve(null);
-        return viaClaude.then(function(dl){
-          if (dl) {
-            return dl.save({ filename: name, data: blob }).then(function(){ say('Сохранено'); }).catch(function(err){
-              var c = err && err.code;
-              if (c === 'declined') say('Отменено'); else if (c === 'rate_limited') say('Подождите секунду и нажмите еще раз'); else say('Здесь сохранить нельзя. В файле отчета кнопка работает');
-            });
-          }
-          var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
-          document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 800);
-        });
-      });
+        var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+        document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 800);
+        say('Сохранено');
+      }).catch(function(){ say('Не получилось собрать файл. Попробуйте еще раз'); });
     });
     document.getElementById('dlPdf').addEventListener('click', function(){
       var host = document.getElementById('print-host');

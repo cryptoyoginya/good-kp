@@ -1,33 +1,16 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>Good КП</title>
 <style>
 :root{
-  --bg:#FBFBFD;--card:#FFFFFF;--card2:#F5F5F7;--line:#E5E5EA;--line2:#D2D2D7;
-  --ink:#1D1D1F;--ink2:#424245;--sub:#6E6E73;--faint:#86868B;
-  --accent:#0071E3;--accent-soft:#E8F1FC;
-  --good:#1D9A4F;--good-soft:#E6F6EC;--warn:#C97B00;--warn-soft:#FFF3DF;--crit:#D93025;--crit-soft:#FDE9E7;
-  --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06);
-  --segtrack:#EEEEEF;--segthumb:#FFFFFF;
-  --r:20px;
-  --sf:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
-  --ease:cubic-bezier(.22,.61,.36,1);
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#000000;--card:#1C1C1E;--card2:#2C2C2E;--line:#2C2C2E;--line2:#3A3A3C;
-    --ink:#F5F5F7;--ink2:#D1D1D6;--sub:#A1A1A6;--faint:#8E8E93;
-    --accent:#2997FF;--accent-soft:#0F2A47;
-    --good:#30D158;--good-soft:#0F2E1A;--warn:#FFB340;--warn-soft:#332410;--crit:#FF6961;--crit-soft:#3A1614;
-    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
-    --segtrack:#2C2C2E;--segthumb:#636366;
-  }
-}
-:root[data-theme="dark"]{
+  color-scheme:dark;
   --bg:#000000;--card:#1C1C1E;--card2:#2C2C2E;--line:#2C2C2E;--line2:#3A3A3C;
   --ink:#F5F5F7;--ink2:#D1D1D6;--sub:#A1A1A6;--faint:#8E8E93;
   --accent:#2997FF;--accent-soft:#0F2A47;
   --good:#30D158;--good-soft:#0F2E1A;--warn:#FFB340;--warn-soft:#332410;--crit:#FF6961;--crit-soft:#3A1614;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
   --segtrack:#2C2C2E;--segthumb:#636366;
+  --r:20px;
+  --sf:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -67,10 +50,8 @@ html.js .pop.in{opacity:1;transform:none}
 .replay:active{transform:scale(.96)}
 
 /* iMessage-style chat */
-.chat{--blue:#0A84FF;--grey:#E9E9EB;--greyink:#1D1D1F;background:var(--card);border-radius:28px;box-shadow:var(--shadow);overflow:hidden;max-width:440px;width:100%;justify-self:end;display:flex;flex-direction:column}
+.chat{--blue:#0A84FF;--grey:#26252A;--greyink:#F5F5F7;background:var(--card);border-radius:28px;box-shadow:var(--shadow);overflow:hidden;max-width:440px;width:100%;justify-self:end;display:flex;flex-direction:column}
 @media (max-width:900px){.chat{justify-self:stretch;max-width:none}}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chat{--grey:#26252A;--greyink:#F5F5F7}}
-:root[data-theme="dark"] .chat{--grey:#26252A;--greyink:#F5F5F7}
 .chat-h{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--card)}
 .chat-avs{display:flex}
 .chat-avs span{width:32px;height:32px;border-radius:50%;background:linear-gradient(180deg,#A8A8AD,#8E8E93);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;border:2px solid var(--card)}
@@ -331,10 +312,8 @@ section>.wrap>h2{font-size:34px;font-weight:600;line-height:1.1;margin-bottom:22
 .msig b{display:block;font-size:18px;font-weight:600;letter-spacing:-.015em}
 .msig>div>span{font-size:14px;color:var(--sub)}
 .tgl span{color:inherit}
-.tgl{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--ink);padding:6px 12px 6px 6px;border-radius:999px;background:var(--card2);transition:filter .2s;white-space:nowrap}
+.tgl{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:#fff;padding:6px 12px 6px 6px;border-radius:999px;background:var(--card2);transition:filter .2s;white-space:nowrap}
 .tgl:hover{text-decoration:none;filter:brightness(.97)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tgl{color:#fff}}
-:root[data-theme="dark"] .tgl{color:#fff}
 .tgl svg{flex:none}
 .mgrid{display:grid;grid-template-columns:.9fr 1.3fr;gap:56px;align-items:start}
 .msticky{position:sticky;top:96px}
@@ -401,7 +380,7 @@ details[open] summary::before{transform:rotate(45deg)}
 
 /* assembled page */
 .doc{max-width:none}
-.doc-p{background:var(--card);border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 24px 60px rgba(0,0,0,.12);padding:26px 40px 36px;font-size:15.5px;line-height:1.55;position:relative}
+.doc-p{--card:#FFFFFF;--line:#E5E5EA;--ink:#1D1D1F;--ink2:#424245;--sub:#6E6E73;--accent:#0071E3;--shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06);background:var(--card);color:var(--ink);border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 24px 60px rgba(0,0,0,.12);padding:26px 40px 36px;font-size:15.5px;line-height:1.55;position:relative}
 @media (max-width:720px){.doc-p{padding:20px 20px 24px}.mail-bar{margin:0 -20px 16px;padding:0 16px 10px}}
 .mail-bar{display:flex;justify-content:space-between;align-items:center;margin:0 -40px 18px;padding:0 24px 12px;border-bottom:1px solid var(--line);font-size:16px}
 .mail-back{color:var(--accent);display:inline-flex;align-items:center;gap:6px}
@@ -453,9 +432,7 @@ details[open] summary::before{transform:rotate(45deg)}
 
 /* table of contents as a note */
 .tocsec{padding-top:36px}
-.note{--paper:#FFFDF6;--yellow:#E6A800;background:var(--paper);border-radius:var(--r);box-shadow:var(--shadow);padding:0 0 12px;overflow:hidden}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .note{--paper:#1C1C1E;--yellow:#FFD60A}}
-:root[data-theme="dark"] .note{--paper:#1C1C1E;--yellow:#FFD60A}
+.note{--paper:#1C1C1E;--yellow:#FFD60A;background:var(--paper);border-radius:var(--r);box-shadow:var(--shadow);padding:0 0 12px;overflow:hidden}
 .note-bar{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;font-size:16px;color:var(--yellow);border-bottom:1px solid var(--line)}
 .note-bar .back{display:inline-flex;align-items:center;gap:4px;font-weight:400}
 .note-bar .back::before{content:"";width:9px;height:9px;border-left:2px solid var(--yellow);border-bottom:2px solid var(--yellow);transform:rotate(45deg);margin-right:4px;margin-left:2px}
@@ -507,7 +484,7 @@ window.GK = (function(){
     s = esc(s);
     s = s.replace(PREP, function(m, a, w){ return a + w + '\u00a0'; });
     s = s.replace(/\s+(же|бы|ли|б|ж)(?=[\s,.!?»])/g, '\u00a0$1');
-    s = s.replace(/(\d)\s+(?=(?:млн|тыс|руб|₽|%|ч|мин|сек|недел|дн|мес|МБ|КБ|стр)\b)/g, '$1\u00a0');
+    s = s.replace(/(\d)\s+(?=(?:млн|тыс|руб|₽|%|ч|мин|сек|недел|дн|мес|МБ|КБ|стр))/g, '$1\u00a0');
     s = s.replace(/(\d)\s(\d{3})(?!\d)/g, '$1\u00a0$2');
     return s;
   }
@@ -548,11 +525,16 @@ window.GK = (function(){
     var n = d.plan.length;
     return cap(numWord(n)) + ' ' + plural(n, 'правка', 'правки', 'правок') + ', один час';
   }
+  /* подпись остановки таймера: бейдж шага, на котором читатель бросил файл, из данных */
+  function stopLabel(d){
+    var r = d.readers[0], f = r.feed.filter(function(x){ return x.state === 'drop'; })[0];
+    return f && f.badge ? f.badge : 'Закрыл файл';
+  }
   return { esc: esc, nb: nb, ph: ph, h: h, fmtDate: fmtDate, ddmmyyyy: ddmmyyyy,
            dateLong: dateLong, timeShort: timeShort, stamp: stamp, weekDate: weekDate,
            mailDate: mailDate, cap: cap, numWord: numWord, plural: plural, mmss: mmss,
            words: words, clientShort: clientShort, memoSecs: memoSecs, planLabel: planLabel,
-           renderers: {} };
+           stopLabel: stopLabel, renderers: {} };
 })();
 </script>
 <script>
@@ -612,7 +594,7 @@ window.GK = (function(){
         ? '<div class="file"><span class="ico">' + esc(m.file.name.split('.').pop().toUpperCase()) + '</span><span><b>' + nb(m.file.name) + '</b><i>' + nb(m.file.size) + '</i></span></div>'
         : '';
       if (m.text) inner += '<div class="b">' + nb(m.text) + '</div>';
-      if (m.status) inner += '<div class="st">' + m.status + '</div>';
+      if (m.status) inner += '<div class="st">' + esc(m.status) + '</div>';
       return GK.h('div', attrs, inner);
     }).join('');
     return { head: head, msgs: msgs };
@@ -695,7 +677,7 @@ window.GK = (function(){
   var LABEL = { ok: 'Прошло', weak: 'Споткнулся', crit: 'Отвалился' };
   R.blocks = function(d){
     return d.blocks.map(function(b){
-      var src = b.quote_src ? '<a class="findsrc" href="#' + b.quote_src + '" data-src="' + b.quote_src + '">' + nb('Найти в исходном КП') + '</a>' : '';
+      var src = b.quote_src ? '<a class="findsrc" href="#' + esc(b.quote_src) + '" data-src="' + esc(b.quote_src) + '">' + nb('Найти в исходном КП') + '</a>' : '';
       return '<article class="block ' + b.state + ' rv">' +
         '<button class="brow" type="button" aria-expanded="false"><span class="i">' + b.id + '</span>' +
         '<span class="bt"><b>' + nb(b.title) + '</b><span>' + nb(b.summary) + '</span></span>' +
@@ -736,7 +718,7 @@ window.GK = (function(){
   /* исправленная первая страница в виде письма */
   R.doc = function(d){
     var f = d.fixed_page, m = d.meta;
-    var title = f.subject.replace(/^[^.]*\.\s*/, '') || f.subject;
+    var title = f.subject.replace(/^КП\s*№\S+\.\s*/, '');
     var body = f.sections.map(function(s, i){
       return '<div class="ds" style="--i:' + (i + 1) + '"><h4>' + nb(s.title) + '</h4><p>' + ph(s.text) + '</p></div>';
     }).join('');
@@ -829,7 +811,7 @@ window.GK = (function(){
     var d;
     try { d = JSON.parse(txt); } catch (e) { document.body.classList.add('nodata'); console.error('Good КП: JSON не разобран', e); return false; }
     if (d.refusal) { document.body.classList.add('nodata'); console.error('Good КП: отказ', d.refusal.reason); return false; }
-    GK.render(d);
+    try { GK.render(d); } catch (e) { document.body.classList.add('nodata'); console.error('Good КП: рендер упал', e); return false; }
     return true;
   };
 })();
@@ -1090,7 +1072,7 @@ GK.init = function(){
     var timer = document.getElementById('timer'), tb = timer && timer.querySelector('b'), chatTick = null, chatSecs = 0;
     function fmtChat(s){ return Math.floor(s/60) + ':' + ('0' + (s%60)).slice(-2); }
     function startTimer(){ stopTick(); chatSecs = 0; timer.classList.remove('stop'); tb.textContent = fmtChat(0); chatTick = setInterval(function(){ chatSecs++; tb.textContent = fmtChat(chatSecs); }, 300); }
-    function stopTimer(){ stopTick(); timer.classList.add('stop'); timer.querySelector('span').textContent = 'Закрыл файл'; }
+    function stopTimer(){ stopTick(); timer.classList.add('stop'); timer.querySelector('span').textContent = GK.stopLabel(GK.data); }
     function stopTick(){ if (chatTick) { clearInterval(chatTick); chatTick = null; } }
     document.getElementById('replay').addEventListener('click', runChat);
     if (reduce || !('IntersectionObserver' in window)) { runChat(); }
@@ -1221,18 +1203,10 @@ GK.init = function(){
       if (!window.JSZip) { say('Библиотека для Word не загрузилась'); return; }
       var name = 'КП ' + GK.clientShort(GK.data) + ', первая страница.docx';
       buildDocx().then(function(blob){
-        var viaClaude = (window.claude && typeof claude.use === 'function') ? claude.use('downloads') : Promise.resolve(null);
-        return viaClaude.then(function(dl){
-          if (dl) {
-            return dl.save({ filename: name, data: blob }).then(function(){ say('Сохранено'); }).catch(function(err){
-              var c = err && err.code;
-              if (c === 'declined') say('Отменено'); else if (c === 'rate_limited') say('Подождите секунду и нажмите еще раз'); else say('Здесь сохранить нельзя. В файле отчета кнопка работает');
-            });
-          }
-          var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
-          document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 800);
-        });
-      });
+        var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+        document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 800);
+        say('Сохранено');
+      }).catch(function(){ say('Не получилось собрать файл. Попробуйте еще раз'); });
     });
     document.getElementById('dlPdf').addEventListener('click', function(){
       var host = document.getElementById('print-host');
