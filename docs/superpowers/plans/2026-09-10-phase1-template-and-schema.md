@@ -177,12 +177,12 @@ def minimal() -> dict:
         ],
         "verdict": {"speaker": "Сергей, гендир", "text": " ".join(["слово"] * 40)},
         "blocks": [block(i) for i in range(1, 7)],
-        "flags": [{"from": "Сергей", "text": "т"}] * 4,
+        "flags": [{"from": "Сергей", "title": "з", "text": "т"}] * 4,
         "holds": [{"title": "з", "text": "т"}] * 2,
         "fixed_page": {"subject": "т", "from_initials": "ПЛ",
                        "sections": [{"title": "з", "text": "т"}] * 6},
         "plan": [{"title": "з", "text": "т", "minutes": 15}] * 4,
-        "source": [{"id": "src-1", "text": "абзац"}],
+        "source": [{"id": "src-1", "kind": "p", "text": "абзац"}],
     }
 
 
@@ -220,6 +220,18 @@ def test_banned_glyphs_rejected():
         Report.model_validate(d)
     d = minimal(); d["meta"]["title"] = "ёлка"
     with pytest.raises(ValidationError, match="ё"):
+        Report.model_validate(d)
+
+
+def test_source_block_needs_payload():
+    d = minimal(); d["source"] = [{"id": "src-1", "kind": "list", "text": "нет items"}]
+    with pytest.raises(ValidationError, match="items"):
+        Report.model_validate(d)
+
+
+def test_dangling_quote_src_rejected():
+    d = minimal(); d["blocks"][0]["quote_src"] = "src-99"
+    with pytest.raises(ValidationError, match="src-99"):
         Report.model_validate(d)
 
 
@@ -334,6 +346,7 @@ class Block(Strict):
 
 class Flag(Strict):
     from_: str = Field(alias="from")
+    title: str = Field(max_length=60)
     text: str
     model_config = {"extra": "forbid", "populate_by_name": True}
 
@@ -360,9 +373,20 @@ class PlanStep(Strict):
     minutes: int = Field(ge=1, le=40)
 
 
-class SourcePara(Strict):
+class SourceBlock(Strict):
+    """Один блок исходного КП: заголовок, абзац, примечание, список или таблица."""
     id: str = Field(pattern=r"^src-\d+$")
-    text: str
+    kind: Literal["h", "p", "note", "list", "table"]
+    text: Optional[str] = None            # h, p, note
+    items: Optional[list[str]] = None     # list
+    rows: Optional[list[list[str]]] = None  # table, первая строка это шапка
+
+    @model_validator(mode="after")
+    def _payload(self):
+        need = {"h": "text", "p": "text", "note": "text", "list": "items", "table": "rows"}[self.kind]
+        if getattr(self, need) is None:
+            raise ValueError(f"блок {self.id} kind={self.kind} требует поле {need}")
+        return self
 
 
 class Report(Strict):
@@ -379,7 +403,7 @@ class Report(Strict):
     holds: Optional[list[Hold]] = Field(default=None, min_length=2, max_length=4)
     fixed_page: Optional[FixedPage] = None
     plan: Optional[list[PlanStep]] = Field(default=None, min_length=4, max_length=6)
-    source: Optional[list[SourcePara]] = None
+    source: Optional[list[SourceBlock]] = None
 
     @model_validator(mode="after")
     def _full_or_refusal(self):
@@ -401,6 +425,10 @@ class Report(Strict):
         total = sum(p.minutes for p in self.plan)
         if not 45 <= total <= 75:
             raise ValueError(f"сумма minutes в plan должна быть от 45 до 75, сейчас {total}")
+        ids = {s.id for s in self.source}
+        dangling = [b.quote_src for b in self.blocks if b.quote_src and b.quote_src not in ids]
+        if dangling:
+            raise ValueError(f"quote_src ссылается на несуществующие блоки source: {dangling}")
         words = len(self.verdict.text.split())
         if not 25 <= words <= 70:
             raise ValueError(f"verdict.text: от 25 до 70 слов, сейчас {words}")
@@ -413,7 +441,7 @@ def export_schema() -> dict:
 
 Примечание: pydantic сообщает об ошибке длины списка с именем поля, поэтому `match="blocks"` сработает. Для порядка readers сообщение содержит фразу из `ValueError`.
 
-- [ ] **Step 4: run** `uv run pytest tests/test_schema.py -q` → 8 passed.
+- [ ] **Step 4: run** `uv run pytest tests/test_schema.py -q` → 10 passed.
 
 - [ ] **Step 5: экспорт схемы**
 
@@ -447,11 +475,11 @@ mkdir -p schema && uv run python -c "import json; from goodkp.schema import expo
 | `verdict` | `.memo-t b` → speaker, `#memoQ` → text (склеить span через пробел) |
 | `readers` | `#readers .pane` по порядку; `.pc h3` name, `.pc div div` role, `.ptiles div:nth(1) p` matters, `nth(2) p` reads, `.pt-final p` outcome; `.feed .msg` → `step` из `.step` («Сначала цена» → `pre`, «1. Проблема» → `1`), `state`: класс `drop`→drop, `off`→off, иначе ok |
 | `blocks` | `.block`: `.i` id, `.bt b` title, `.bt > span > span` summary, класс `crit/weak/ok` state, `.kpq p` quote, `.findsrc[data-src]` quote_src, `.bwhy` why, `.bdo` do без «Что делать.», `.was` was, `.now` now |
-| `flags` | `#nstack .ncard`: имя отправителя `.nh b` или `.nname`, текст `.nt` (проверить фактические классы в прототипе, `grep -o 'class="n[a-z]*"'`) |
+| `flags` | `#nstack .ncard`: `from` из прямого потомка `b`, `title` из `p > span.nf` (без завершающей точки), `text` из `p` без текста `.nf` |
 | `holds` | `.holds li`: `b` title без завершающей точки, остальной текст |
 | `fixed_page` | `.msubj` subject, `.mav` from_initials, `#docBody .ds` кроме `#docCta`: `h4`, `p` (плейсхолдеры `.ph` в квадратных скобках как есть) |
 | `plan` | `#plan li`: `data-min`, `.t` первый текстовый узел title, вложенный `span` text |
-| `source` | `#s-source .kp` детей: каждый `h3` и `p` с `id="src-N"` или без; узлы без id получают `src-N` по счету, `h3` префикс `## ` в тексте |
+| `source` | прямые дети `#s-source .kp`, кроме первого `p.fine` (статичная приписка про вымышленные компании): `h3` → kind `h`, `p.fine` → `note`, `p` → `p`, `ul` → `list` (items из `li`), `table` → `table` (rows из всех `tr`, шапка первой строкой). Все блоки нумеруются заново подряд `src-1..N`; старые id (`src-1`, `src-3`, `src-4`, `src-5`, `src-6` в прототипе) переводятся в новые через словарь, и `blocks[].quote_src` переписываются по этому словарю |
 
 Все тексты: `get_text()` с `\xa0` → обычный пробел (nbsp вернет `typo.py` в фазе 2, а в шаблоне JS ставит nbsp при рендере, см. Task 5).
 
@@ -470,6 +498,8 @@ def test_golden_valid(golden_path):
     assert r.readers[0].name == "Сергей" and r.readers[0].feed[0].step == "pre"
     assert sum(p.minutes for p in r.plan) == 60
     assert any(m.file for m in r.chat)
+    assert [s.kind for s in r.source].count("table") == 2 and r.source[0].kind == "h"
+    assert all(f.title for f in r.flags) and len(r.flags) == 6
 ```
 
 - [ ] **Step 2: run** → FAIL, файла нет.
@@ -541,17 +571,29 @@ for b in soup.select(".block"):
         "was": t(b.select_one(".was")), "now": t(b.select_one(".now")),
     })
 
-flags = [{"from": t(c.select_one(".nh b, .nname")), "text": t(c.select_one(".nt, .nb"))} for c in soup.select("#nstack .ncard")]
+flags = []
+for c in soup.select("#nstack .ncard"):
+    lead = c.select_one("p .nf")
+    title = t(lead).rstrip(".")
+    body = t(c.p)[len(t(lead)):].strip()
+    flags.append({"from": t(c.find("b", recursive=False)), "title": title, "text": body})
 holds = [{"title": t(li.b).rstrip("."), "text": t(li.select_one("span:last-child")).replace(t(li.b), "", 1).strip()}
          for li in soup.select(".holds li")]
 sections = [{"title": t(ds.h4), "text": t(ds.p)} for ds in soup.select("#docBody .ds") if ds.h4]
 plan = [{"title": li.select_one(".t").find(string=True, recursive=False).replace("\xa0", " ").strip(),
          "text": t(li.select_one(".t span")), "minutes": int(li["data-min"])} for li in soup.select("#plan li")]
-source, n = [], 0
-for el in soup.select_one("#s-source .kp").find_all(["h3", "p"], recursive=False):
-    if "fine" in el.get("class", []): continue
-    n += 1
-    source.append({"id": el.get("id") or f"src-{n}", "text": ("## " if el.name == "h3" else "") + t(el)})
+source, remap = [], {}
+kids = [k for k in soup.select_one("#s-source .kp").children if getattr(k, "name", None)]
+for el in kids[1:]:   # kids[0] это статичная приписка p.fine
+    new_id = f"src-{len(source) + 1}"
+    if el.get("id"): remap[el["id"]] = new_id
+    if el.name == "h3": blk = {"kind": "h", "text": t(el)}
+    elif el.name == "ul": blk = {"kind": "list", "items": [t(li) for li in el.find_all("li")]}
+    elif el.name == "table": blk = {"kind": "table", "rows": [[t(c) for c in tr.find_all(["th", "td"])] for tr in el.find_all("tr")]}
+    else: blk = {"kind": "note" if "fine" in el.get("class", []) else "p", "text": t(el)}
+    source.append({"id": new_id, **blk})
+for b in blocks:
+    if b["quote_src"]: b["quote_src"] = remap[b["quote_src"]]
 
 data = {
     "version": "1.0.0", "methodology_version": "1.0", "refusal": None,
@@ -575,7 +617,7 @@ print("ok", OUT, len(source), "абзацев источника")
 grep -o 'class="n[a-z]*"' tests/fixtures/prototype.html | sort | uniq -c
 grep -o 'id="src-[0-9]*"' tests/fixtures/prototype.html | head
 ```
-и поправить селекторы `flags`/`source`, если отличаются. Если якорей `src-N` в источнике меньше, чем ссылок `quote_src` в блоках, скрипт упадет на валидации: тогда присвоить якоря так, чтобы каждый `quote_src` существовал (проверка добавляется в `Report`: в Task 2 она не нужна, здесь достаточно `assert {b['quote_src'] for b in blocks if b['quote_src']} <= {s['id'] for s in source}` перед записью).
+и поправить селекторы, если отличаются. Валидация `Report` проверит, что каждый `quote_src` существует в `source`.
 
 - [ ] **Step 4: run** `uv run python scripts/extract_golden.py && uv run pytest tests/test_golden.py -q` → passed.
 
@@ -765,7 +807,7 @@ def test_no_page_errors(page):
     assert page.errors == []
 ```
 
-Тест сравнивает `innerText`, поэтому скрытые элементы (`hidden`, `display:none`) в нем не участвуют. Прототип и шаблон должны совпасть по видимому тексту после reveal. Чтобы reveal не мешал, в тесте `reduced_motion="reduce"`, а JS шаблона при `prefers-reduced-motion` сразу добавляет класс `in` всем `.rv`, и чат с диктофоном показывают конечное состояние (это поведение уже есть в прототипе для reveal; для чата проверить блок `/* iMessage chat */`: при reduced motion все `.m` должны получать `show` сразу, если нет, добавить).
+Тест сравнивает `innerText`, поэтому скрытые элементы (`hidden`, `display:none`) в нем не участвуют. Прототип и шаблон должны совпасть по видимому тексту после reveal. Чтобы reveal не мешал, в тесте `reduced_motion="reduce"`, а JS шаблона при `prefers-reduced-motion` сразу добавляет класс `in` всем `.rv`, и чат с диктофоном показывают конечное состояние (это уже есть в прототипе: reveal и чат при `reduce` сразу ставят класс `in` и снимают `hidden`).
 
 - [ ] **Step 3: run** → FAIL: страница все еще рендерит захардкоженный текст, но `innerText` header совпадет, а секции упадут после следующего шага. Сейчас цель: убедиться, что тест запускается и проходит на нетронутом шаблоне (он должен пройти полностью, это базовая линия). Expected: 12 passed.
 
@@ -829,7 +871,8 @@ window.GK = (function(){
 
 - hero `p`: «{crit} из шести опор провалены, {weak} шатаются, {ok} держит.» Числа словами: 0 «ни одна», 1 «одна», 2 «две», 3 «три», 4 «четыре», 5 «пять», 6 «шесть». Затем вторая фраза из прототипа заменяется на `readers[1].outcome` и `readers[0].outcome`, склеенные: «Тому, кто продвигает проект внутри клиента: {champion.outcome} Тому, кто платит: {decider.outcome}». Ожидаемый текст в `expected_text.json` для hero нужно после этого пересобрать (Step 1 выполняется повторно после того, как рендеры готовы, и diff руками проверяется на осмысленность: единственная допустимая разница в hero это этот абзац).
 - Подпись строки блока по state: `ok` «Держит», `weak` «Шатается», `crit` «Отвалился».
-- `#timer span` начальный текст: «{decider.name} читает файл».
+- `#timer span` начальный текст: «{decider.name} читает файл». В JS интерактивов `resetChat` восстанавливает этот текст строкой `'Сергей читает файл'`: заменить на чтение `timer.dataset.label`, а рендер чата ставит `data-label="{decider.name} читает файл"` на `#timer`.
+- Другие захардкоженные строки в JS интерактивов, которые зависят от данных: имя docx `'КП СтройМаркет, первая страница.docx'` → `'КП ' + client_short + ', первая страница.docx'`, где `client_short` это `meta.client` без «ООО » и кавычек (тот же расчет, что для `document.title`, вынести в `GK.clientShort(d)`); подпись таймера `'Пять правок, один час'` → `GK.plural(plan.length)` + ' правок, один час' с числительными словами (четыре, пять, шесть). Значения передаются через `GK.data = d` в `GK.render`, интерактивы читают `GK.data`.
 - `.memo-dur` и `#memoLeft`: секунды = `Math.max(8, Math.round(words / 2.6))`, формат `m:ss`.
 - Дата в заметке и диктофоне: `fmtDate(run_date, {day:'numeric', month:'long', year:'numeric'}) + ', ' + fmtDate(run_date, {hour:'2-digit', minute:'2-digit'})`, в заметке плюс « МСК». Экран блокировки: `#lockDate` день недели и дата, `#lockTime` часы.
 - Кольцо таймера: сегменты из `plan[].minutes`: длина окружности `C = 741.42`, дуга `C * min / total` минус зазор `8`, поворот `-90 + 360 * acc / total + 1.7`. Шаг по цвету не отличается (сегменты `stroke: var(--faint)`), это уже в CSS.
@@ -892,7 +935,7 @@ GK.renderers.chat = function(d){
 ```
 Обвязка вставляет `head` перед `.chat-b`, а `msgs` в `.msgs`. Заголовок чата в golden: «Сайт, КП от Пиксель Лаб». В схему поле `chat_title` не добавляется: заголовок собирается как `'{meta.project_short}, КП от {vendor}'`… чтобы не плодить поля, принять правило: заголовок чата = `'КП от ' + vendor`, и обновить golden-ожидание для hero в `expected_text.json` (это второе допустимое расхождение в hero). Прототип в `tests/fixtures/prototype.html` при этом не меняется.
 
-Остальные рендеры (`header`, `hero`, `toc`, `memo`, `readers`, `flags`, `holds`, `doc`, `plan`, `source`) пишутся по тому же образцу: открыть соответствующий фрагмент прототипа, перенести разметку в строку, подставить данные через `GK.nb`/`GK.ph`/`GK.esc`. Для `memo` слова вердикта оборачиваются в `<span>` по одному, как в прототипе (`#memoQ`). Для `readers` порядок панелей и `style="--i:N"` в `.msg` сохраняются. Для `source` элементы с `## ` в тексте становятся `<h3 id="src-N">`, остальные `<p id="src-N">`; первая строка `.fine` про вымышленные компании остается статичной в шаблоне.
+Остальные рендеры (`header`, `hero`, `toc`, `memo`, `readers`, `flags`, `holds`, `doc`, `plan`, `source`) пишутся по тому же образцу: открыть соответствующий фрагмент прототипа, перенести разметку в строку, подставить данные через `GK.nb`/`GK.ph`/`GK.esc`. Для `memo` слова вердикта оборачиваются в `<span>` по одному, как в прототипе (`#memoQ`). Для `readers` порядок панелей и `style="--i:N"` в `.msg` сохраняются. Для `source` каждый блок получает `id` из данных: `h` → `<h3 id>` (первый заголовок дополнительно с классом `h0`), `p` → `<p id>`, `note` → `<p class="fine" id>`, `list` → `<ul id><li>…</li></ul>`, `table` → `<table id><thead><tr><th>…</tr></thead><tbody>…</tbody></table>`; первая строка `.fine` про вымышленные компании остается статичной в шаблоне, `summary` собирается как «Полный текст КП №{kp_number}, «{vendor}» для {client}». Для `flags` карточка: `<div class="ncard" data-i="N"><div class="nh"><span class="napp">{svg Telegram из прототипа}</span><span class="nname">Telegram</span><span class="ntime">сейчас</span></div><b>{from}</b><p><span class="nf">{title}.</span> {text}</p></div>`, после карточек `<div class="nhint" id="nhint" hidden>Telegram, {N} уведомлений</div>` со склонением (4 уведомления, 5 уведомлений, 6 уведомлений).
 
 - [ ] **Step 6: обвязка запуска**
 
@@ -1063,7 +1106,7 @@ def test_was_now_toggle(page):
     assert blk.locator(".was").is_visible() and not blk.locator(".now").is_visible()
 
 def test_chat_completes_under_reduced_motion(page):
-    shown = page.evaluate("document.querySelectorAll('#chat .m.show').length")
+    shown = page.evaluate("document.querySelectorAll('#chat .m.in:not([hidden])').length")
     total = page.evaluate("document.querySelectorAll('#chat .m').length")
     assert shown == total
 
@@ -1087,7 +1130,7 @@ def test_screenshot_matches_baseline(page, tmp_path):
         changed = sum(hist[8:]) / (a.size[0] * a.size[1])
         assert changed < 0.01, f"изменилось {changed:.1%} пикселей"
 ```
-Класс `show` у сообщений чата: сверить с прототипом (`grep -n "classList.add('show')\|classList.add(\"show\")" tests/fixtures/prototype.html`), если класс другой, подставить его. Добавить `pillow` в dev-группу: `uv add --group dev pillow`.
+Добавить `pillow` в dev-группу: `uv add --group dev pillow`.
 
 - [ ] **Step 2: run** дважды: первый создает baseline, второй проходит. Baseline коммитится.
 
