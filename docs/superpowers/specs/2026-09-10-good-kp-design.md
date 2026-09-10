@@ -110,10 +110,10 @@ good-kp/
   `{step, text, state}`, где `step` в списке `pre,1..6`, `state` в `ok|drop|off`.
   `pre` только у decider (сначала цена).
 - `chat`: массив сообщений hero-переписки, 8..14 штук:
-  `{side: me|them, name?, text, file?: {name, size}, status?: Прочитано|Доставлено,
+  `{side: me|them, name?, text (пустой допустим только при file), file?: {name, size}, status?: Прочитано|Доставлено,
   timer?: start|stop}`. Тайминги набора и пауз шаблон считает сам по длине текста.
   Ровно одно `timer:start` и одно `timer:stop`.
-- `verdict`: `{speaker, text}`. Голос гендира, 35..60 слов. Длительность записи
+- `verdict`: `{speaker, text}`. Голос гендира, 25..60 слов. Длительность записи
   шаблон считает по словам.
 - `blocks`: массив ровно из шести опор в порядке рубрики:
   `{id: 1..6, title, summary (до 60 символов), state: ok|weak|crit, quote,
