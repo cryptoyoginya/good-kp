@@ -1,0 +1,8 @@
+tests/
+docs/
+examples/
+template/
+scripts/
+.superpowers/
+.venv/
+uv.lock
