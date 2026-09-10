@@ -61,7 +61,7 @@ good-kp/
     schema.py                    pydantic-модели отчета, экспорт JSON-схемы
     model.py                     вызов модели со структурированным выводом
     typo.py                      типографский проход и проверки голоса
-    render.py                    вставка JSON в шаблон, каркас, сборка docs/index.html
+    render.py                    вставка JSON в шаблон, каркас, сборка paste.html
   bot/
     api/webhook.py               Vercel-функция, проверка подписки
     vercel.json
@@ -69,7 +69,7 @@ good-kp/
     golden/stroymarket/          kp.txt, answers.yaml, report.json
     test_schema.py test_typo.py test_render.py test_rubric.py
     test_ui.py                   Playwright: рендер golden JSON, проверка секций, скриншоты
-  scripts/build.py               rubric -> prompt.md, schema.json, docs/index.html
+  scripts/build.py               rubric -> prompt.md, schema.json, paste.html
 ```
 
 ## 4. Поток данных
@@ -179,7 +179,7 @@ intake_questions:   # шесть вопросов с ключами
 `<script type="application/json" id="data"></script>` пустой. JS при загрузке:
 
 1. Читает `#data`. Если пусто, показывает состояние «Нет данных» с подсказкой
-   вставить JSON (это же поведение использует `docs/index.html`).
+   вставить JSON (это же поведение использует `paste.html`).
 2. Валидирует минимально (наличие обязательных ключей), при ошибке печатает список.
 3. Рендерит каждую секцию своей функцией: `renderHero(data)`, `renderToc`,
    `renderIntake`, `renderVerdict`, `renderReaders`, `renderBlocks`, `renderFlags`,
