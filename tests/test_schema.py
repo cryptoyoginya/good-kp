@@ -94,3 +94,38 @@ def test_export_schema_roundtrip():
     s = export_schema()
     assert s["title"] == "Report" and "blocks" in s["properties"]
     json.dumps(s)
+
+
+def test_banned_glyphs_rejected_in_list_fields():
+    d = minimal()
+    d["source"] = [{"id": "src-1", "kind": "list", "items": ["тире — тут"]}]
+    with pytest.raises(ValidationError, match="—"):
+        Report.model_validate(d)
+    d = minimal()
+    d["source"] = [{"id": "src-1", "kind": "table", "rows": [["ё"]]}]
+    with pytest.raises(ValidationError, match="ё"):
+        Report.model_validate(d)
+
+
+def test_verdict_word_count_upper_bound_60():
+    d = minimal()
+    d["verdict"]["text"] = " ".join(["слово"] * 61)
+    with pytest.raises(ValidationError, match="60"):
+        Report.model_validate(d)
+
+
+def test_pre_step_only_for_decider():
+    d = minimal()
+    d["readers"][1]["feed"][0] = {"step": "pre", "text": "т", "state": "ok"}
+    with pytest.raises(ValidationError, match="pre"):
+        Report.model_validate(d)
+
+
+def test_chat_msg_empty_text_requires_file():
+    d = minimal()
+    d["chat"][0] = {"side": "me", "text": ""}
+    with pytest.raises(ValidationError, match="файлом"):
+        Report.model_validate(d)
+    d = minimal()
+    d["chat"][0] = {"side": "me", "text": "", "file": {"name": "a.pdf", "size": "1 МБ"}}
+    Report.model_validate(d)

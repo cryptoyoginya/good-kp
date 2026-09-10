@@ -8,16 +8,23 @@ READERS = 3
 BANNED = ("—", "·", "ё", "Ё")
 
 
+def _check_banned(v):
+    if isinstance(v, str):
+        for g in BANNED:
+            if g in v:
+                raise ValueError(f"запрещенный символ {g!r} в тексте: {v[:60]!r}")
+    elif isinstance(v, list):
+        for item in v:
+            _check_banned(item)
+
+
 class Strict(BaseModel):
     model_config = {"extra": "forbid"}
 
     @field_validator("*", mode="before")
     @classmethod
     def _no_banned(cls, v):
-        if isinstance(v, str):
-            for g in BANNED:
-                if g in v:
-                    raise ValueError(f"запрещенный символ {g!r} в тексте: {v[:60]!r}")
+        _check_banned(v)
         return v
 
 
@@ -68,6 +75,12 @@ class ChatMsg(Strict):
     file: Optional[ChatFile] = None
     status: Optional[Literal["Прочитано", "Доставлено"]] = None
     timer: Optional[Literal["start", "stop"]] = None
+
+    @model_validator(mode="after")
+    def _text_or_file(self):
+        if not self.text and self.file is None:
+            raise ValueError("сообщение без текста допустимо только с файлом")
+        return self
 
 
 class Verdict(Strict):
@@ -161,6 +174,9 @@ class Report(Strict):
         kinds = [r.kind for r in self.readers]
         if kinds != ["decider", "champion", "executor"]:
             raise ValueError("readers должны идти в порядке decider, champion, executor")
+        for r in self.readers:
+            if r.kind in ("champion", "executor") and any(f.step == "pre" for f in r.feed):
+                raise ValueError("шаг pre допустим только у decider")
         timers = [m.timer for m in self.chat if m.timer]
         if sorted(timers) != ["start", "stop"]:
             raise ValueError("в chat нужен ровно один timer:start и один timer:stop")
@@ -174,8 +190,8 @@ class Report(Strict):
         if dangling:
             raise ValueError(f"quote_src ссылается на несуществующие блоки source: {dangling}")
         words = len(self.verdict.text.split())
-        if not 25 <= words <= 70:
-            raise ValueError(f"verdict.text: от 25 до 70 слов, сейчас {words}")
+        if not 25 <= words <= 60:
+            raise ValueError(f"verdict.text: от 25 до 60 слов, сейчас {words}")
         return self
 
 
