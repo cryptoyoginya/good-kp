@@ -7,7 +7,7 @@ def test_dark_only(template_path):
     assert re.search(r":root\s*\{[^}]*color-scheme:\s*dark", s)
 
 def test_no_banned_glyphs_in_static_text(template_path):
+    """Скан по всему файлу: стили, утилиты, рендеры и разметка."""
     s = template_path.read_text(encoding="utf-8")
-    body = s[s.index("<header"):]
     for g in ("—", "·", "ё", "Ё"):
-        assert g not in body, g
+        assert g not in s, g

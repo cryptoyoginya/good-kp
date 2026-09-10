@@ -3,6 +3,11 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 
+
+def pytest_addoption(parser):
+    parser.addoption("--update-baseline", action="store_true", default=False,
+                     help="перезаписать эталонные скриншоты вместо сравнения")
+
 @pytest.fixture
 def template_path() -> Path:
     return ROOT / "template" / "report.html"

@@ -129,26 +129,28 @@ def test_all_sections_present(page):
         assert page.locator("#" + sec).count() == 1
 
 
-def test_screenshot_matches_baseline(page, page_html, tmp_path):
+def test_screenshot_matches_baseline(request, page, page_html):
     """Скриншот снимается на свежей странице того же браузера, а не на модульной
     `page`: test_was_now_toggle кликает и мутирует общую страницу, а порядок
     тестов в файле не должен влиять на результат сравнения со скриншотом.
     """
-    from pathlib import Path
     from PIL import Image, ImageChops
-    base = Path("tests/screenshots/baseline/full.png")
-    actual = Path("tests/screenshots/actual")
+    root = request.config.rootpath
+    base = root / "tests" / "screenshots" / "baseline" / "full.png"
+    actual = root / "tests" / "screenshots" / "actual"
     actual.mkdir(parents=True, exist_ok=True)
     shot = page.context.browser.new_page(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
     shot.goto(page_html.as_uri())
     shot.wait_for_timeout(500)
     shot.screenshot(path=str(actual / "full.png"), full_page=True)
     shot.close()
-    if not base.exists():
+    if request.config.getoption("--update-baseline"):
         import shutil
         base.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(actual / "full.png", base)
         return
+    if not base.exists():
+        pytest.fail("нет эталона, запустите с --update-baseline")
     a, b = Image.open(actual / "full.png").convert("RGB"), Image.open(base).convert("RGB")
     assert a.size == b.size, f"размер {a.size} против {b.size}"
     diff = ImageChops.difference(a, b).getbbox()
@@ -156,3 +158,85 @@ def test_screenshot_matches_baseline(page, page_html, tmp_path):
         hist = ImageChops.difference(a, b).convert("L").histogram()
         changed = sum(hist[8:]) / (a.size[0] * a.size[1])
         assert changed < 0.01, f"изменилось {changed:.1%} пикселей"
+
+
+@pytest.fixture(scope="module")
+def golden_data(request):
+    p = request.config.rootpath / "tests" / "golden" / "stroymarket" / "report.json"
+    return json.loads(p.read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="module")
+def edge_page(page, tmp_path_factory):
+    """Второй набор данных: все шесть опор прошли, нижние границы контракта."""
+    from tests.edge_data import edge_report
+    p = tmp_path_factory.mktemp("edge") / "report.html"
+    p.write_text(render(Report.model_validate(edge_report())), encoding="utf-8")
+    pg = page.context.browser.new_page(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
+    errors = []
+    pg.on("pageerror", lambda e: errors.append(str(e)))
+    pg.goto(p.as_uri())
+    pg.wait_for_timeout(500)
+    pg.errors = errors
+    yield pg
+    pg.close()
+
+
+def test_edge_dataset_renders_without_errors(edge_page):
+    assert edge_page.errors == []
+    assert not edge_page.evaluate("() => document.body.classList.contains('nodata')")
+    for sec in ["s-toc", "s-intake", "s-verdict", "s-readers", "s-blocks", "s-flags",
+                "s-fixed", "s-plan", "s-method", "s-source"]:
+        assert edge_page.locator("#" + sec).count() == 1
+
+
+def test_hero_lead_agrees_with_zero_counts(edge_page):
+    got = edge_page.evaluate("() => document.querySelector('.hero-t p').innerText")
+    assert norm(got).startswith(
+        "Ни одна из шести опор не провалена, ни одна не шатается, шесть держат.")
+
+
+def test_missing_top_level_key_named_in_nodata(page, golden_data, tmp_path):
+    """Без одного из одиннадцати полей страница уходит в nodata и называет поле."""
+    from goodkp.render import inject, load_template, wrap
+    d = dict(golden_data)
+    d.pop("plan")
+    p = tmp_path / "no_plan.html"
+    p.write_text(wrap(inject(load_template(), d)), encoding="utf-8")
+    pg = page.context.browser.new_page()
+    errors = []
+    pg.on("pageerror", lambda e: errors.append(str(e)))
+    pg.goto(p.as_uri())
+    pg.wait_for_timeout(300)
+    nodata = pg.evaluate("() => document.body.classList.contains('nodata')")
+    msg = pg.evaluate("() => document.querySelector('.nodata-msg').innerText")
+    pg.close()
+    assert nodata
+    assert "plan" in msg
+    assert errors == []
+
+
+def test_dl_note_host_present(page):
+    assert page.evaluate("() => !!document.getElementById('dlNote')")
+
+
+def test_mount_twice_does_not_duplicate(page, page_html):
+    """GK.mount повторно рендерит и переинициализирует, ничего не удваивая."""
+    pg = page.context.browser.new_page(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
+    errors = []
+    pg.on("pageerror", lambda e: errors.append(str(e)))
+    pg.goto(page_html.as_uri())
+    pg.wait_for_timeout(400)
+    bars = pg.evaluate("() => document.getElementById('wave').children.length")
+    heads = pg.evaluate("() => document.querySelectorAll('.chat-h').length")
+    pg.evaluate("() => { GK.mount(GK.data); GK.mount(GK.data); }")
+    pg.wait_for_timeout(400)
+    got = pg.evaluate("() => ({bars: document.getElementById('wave').children.length,"
+                      " heads: document.querySelectorAll('.chat-h').length,"
+                      " blocks: document.querySelectorAll('.block').length,"
+                      " cards: document.querySelectorAll('#nstack .ncard').length})")
+    pg.close()
+    assert errors == []
+    assert heads == 1 and got["heads"] == 1
+    assert got["bars"] == bars
+    assert got["blocks"] == 6 and got["cards"] == 6
