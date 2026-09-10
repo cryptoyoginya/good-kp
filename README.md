@@ -36,10 +36,12 @@ Good КП собирает этих троих синтетически, чит�
   -> report.html
 ```
 
+Экспорт в Word подгружает JSZip с cdnjs, для него нужна сеть. PDF печатается средствами браузера, сеть не нужна.
+
 Два пути к одному и тому же файлу:
 
 - **Без кода.** Файл `paste.html` из репозитория и `prompt.md`. Вставляете КП в чат с моделью, получаете JSON, вставляете его в открытый файл, скачиваете отчет.
-- **Из терминала.** `uv run goodkp run kp.pdf --answers answers.yaml`. Тот же шаблон, тот же результат.
+- **Из терминала (в работе).** `uv run goodkp run kp.pdf --answers answers.yaml`. Тот же шаблон, тот же результат.
 
 ## Структура
 
@@ -54,9 +56,11 @@ schema/
 scripts/
   extract_golden.py   эталонные данные из прототипа
   expected_text.py    ожидаемый текст секций для теста эквивалентности
+  build_example.py    пересборка examples/stroymarket.html из golden
 tests/
   golden/stroymarket/report.json   эталонный отчет
   test_schema.py  test_render.py  test_golden.py  test_ui.py
+  test_template_static.py  test_example.py
 examples/
   stroymarket.html  собранный эталонный отчет
 docs/
@@ -70,6 +74,8 @@ uv sync --group dev
 uv run playwright install chromium
 uv run pytest -q
 ```
+
+`uv run python scripts/build_example.py` пересобирает пример `examples/stroymarket.html` из эталонного JSON.
 
 Собрать отчет из готового JSON:
 
