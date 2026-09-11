@@ -4,7 +4,7 @@
 
 Методика [Вадима Школьного](https://t.me/ShkolnyiAccount), продукт и код [Кристины Винтер](https://t.me/vintersbrain).
 
-**Пример отчета:** скачайте [examples/stroymarket.html](examples/stroymarket.html) и откройте в браузере. КП синтетическое, компании и люди вымышлены.
+**Пример отчета:** скачайте [examples/dom-i-uyut.html](examples/dom-i-uyut.html) и откройте в браузере. КП синтетическое, компании и люди вымышлены.
 
 ![Good КП](docs/preview.png)
 
@@ -32,7 +32,7 @@ reference/methodology.md   шесть опор, три читателя, пра�
 reference/example.json     полный образец отчета на синтетическом КП
 assets/template.html       шаблон отчета: стили, рендер из JSON, интерактивы
 scripts/build.py           проверка данных и сборка файла, только стандартная библиотека
-examples/stroymarket.html  собранный пример
+examples/dom-i-uyut.html   собранный пример
 ```
 
 Принцип один: модель возвращает только данные, весь интерфейс и все проверки живут в шаблоне и скрипте. Поэтому отчет у всех одинаковый.
