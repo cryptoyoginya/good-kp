@@ -810,8 +810,7 @@ window.GK = (function(){
     }).join('');
     var m = d.meta;
     return '<summary>' + nb('Полный текст КП №' + m.kp_number + ', «' + m.vendor + '» для ' + m.client) + '</summary>' +
-      '<div class="kp"><p class="fine">' + nb('Компании и люди вымышлены. Документ собран как типовое КП среднего digital-агентства для проверки методики.') + '</p>' +
-      blocks + '</div>';
+      '<div class="kp">' + blocks + '</div>';
   };
 
   GK.render = function(d){
@@ -1191,7 +1190,6 @@ window.GK = (function(){
       <a class="sig-btn" href="https://t.me/vintersbrain" target="_blank" rel="noopener">Подписаться в&nbsp;Telegram</a>
       <div class="sig-handle">@vintersbrain</div>
     </div>
-    <div class="fine">Синтетический пример. Компании и&nbsp;люди вымышлены.</div>
   </div>
 </footer>
 
