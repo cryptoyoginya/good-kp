@@ -16,9 +16,9 @@ Good КП берет коммерческое предложение (КП) и �
 
 Два пути к одному и тому же файлу:
 
-- Продажник без кода. Скачивает репозиторий, открывает `paste.html`, прогоняет `prompt.md`
-  вместе с текстом КП в чат с моделью, вставляет полученный JSON в поле,
-  видит отчет, жмет «Сохранить HTML». Хостинга нет, файл работает локально.
+- Через агента. Человек дает агенту с доступом к файлам ссылку на репозиторий,
+  текст КП и шесть ответов. `prompt.md` ведет агента: заполнить JSON по схеме,
+  проверить `Report`, собрать `report.html` через `render`. Хостинга нет.
 - Инженер. `uv run goodkp run kp.pdf --answers answers.yaml -o report.html`.
   Тот же шаблон, тот же JSON, тот же файл.
 
@@ -48,11 +48,10 @@ Good КП берет коммерческое предложение (КП) и �
 ```
 good-kp/
   README.md                      два пути, как получить доступ, как запустить
-  prompt.md                      СГЕНЕРИРОВАН из rubric.yaml, промпт для пути без кода
+  prompt.md                      промпт и инструкция для агента; позже генерируется из rubric.yaml
   rubric.yaml                    единый источник методики
   schema/report.schema.json      СГЕНЕРИРОВАН из pydantic-моделей
   template/report.html           эталон интерфейса без каркаса, с пустым <script id="data">
-  paste.html                     страница вставки JSON, СОБИРАЕТСЯ из шаблона, открывается локально
   goodkp/
     __init__.py
     cli.py                       команды run, render, check, build
@@ -61,7 +60,7 @@ good-kp/
     schema.py                    pydantic-модели отчета, экспорт JSON-схемы
     model.py                     вызов модели со структурированным выводом
     typo.py                      типографский проход и проверки голоса
-    render.py                    вставка JSON в шаблон, каркас, сборка paste.html
+    render.py                    вставка JSON в шаблон, каркас
   bot/
     api/webhook.py               Vercel-функция, проверка подписки
     vercel.json
@@ -69,7 +68,7 @@ good-kp/
     golden/stroymarket/          kp.txt, answers.yaml, report.json
     test_schema.py test_typo.py test_render.py test_rubric.py
     test_ui.py                   Playwright: рендер golden JSON, проверка секций, скриншоты
-  scripts/build.py               rubric -> prompt.md, schema.json, paste.html
+  scripts/build.py               rubric -> prompt.md, schema.json
 ```
 
 ## 4. Поток данных
@@ -183,7 +182,7 @@ intake_questions:   # шесть вопросов с ключами
 `<script type="application/json" id="data"></script>` пустой. JS при загрузке:
 
 1. Читает `#data`. Если пусто, показывает состояние «Нет данных» с подсказкой
-   вставить JSON (это же поведение использует `paste.html`).
+   вставить JSON.
 2. Валидирует минимально (наличие обязательных ключей), при ошибке печатает список.
 3. Рендерит каждую секцию своей функцией: `renderHero(data)`, `renderToc`,
    `renderIntake`, `renderVerdict`, `renderReaders`, `renderBlocks`, `renderFlags`,
@@ -199,10 +198,6 @@ JS шаблона разбивается на модули по секциям �
 - `render(data: Report, template: str) -> str`: вставляет JSON (экранируя `</`),
   оборачивает каркасом `<!doctype html><html lang="ru"><head>…` с charset, viewport,
   color-scheme dark, и reset `body{margin:0}img{max-width:100%}[hidden]{display:none!important}`.
-- `build_paste()`: собирает `paste.html` из того же шаблона, добавляя панель
-  вставки JSON и кнопку «Сохранить HTML», которая формирует standalone-файл
-  тем же каркасом и отдает через `<a download>`.
-
 ## 8. Промпт и модель
 
 `model.py` вызывает модель через Anthropic API (id модели в конфиге, флаг `--model`) с
