@@ -36,7 +36,26 @@
    Если ссылки недоступны, работай по разделам ниже, в них есть все ограничения.
 2. Если ответов на шесть вопросов нет, задай их одним сообщением и дождись ответа.
 3. Составь JSON по правилам ниже. Перед выдачей проверь сам: нет «—», «·», «ё», все обязательные поля на месте, счетчики сходятся (6 опор, 3 читателя, 8..14 сообщений, сумма минут 45..75).
-4. Верни только JSON в одном блоке кода, без текста до и после. Человек вставит его в файл goodkp.html из репозитория и получит отчет.
+4. Отдай человеку готовый файл отчета, если умеешь создавать файлы (артефакты, вложения). Имя файла: `КП <клиент>, прогон.html`. Содержимое файла ровно такое, вместо `…JSON…` подставь свой JSON целиком, больше ничего не меняй:
+
+```html
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>Good КП</title></head><body style="margin:0;background:#000;color:#8e8e93;font:15px -apple-system,BlinkMacSystemFont,sans-serif;padding:48px 28px">Собираю отчет. Нужна сеть, шаблон подтягивается из репозитория.
+<script type="application/json" id="data">
+…JSON…
+</script>
+<script>
+fetch('https://cdn.jsdelivr.net/gh/cryptoyoginya/good-kp@main/goodkp.html').then(function(r){ return r.text(); }).then(function(t){
+  var d = document.getElementById('data').textContent.replace(/<\//g, '<\\/');
+  var h = t.replace('<html lang="ru">', '<html lang="ru" data-loader>')
+           .replace('id="data"><\/script>', 'id="data">' + d + '<\/script>');
+  document.open(); document.write(h); document.close();
+}).catch(function(){
+  document.body.textContent = 'Нет сети. Откройте goodkp.html из репозитория и вставьте данные из этого файла.';
+});
+</script></body></html>
+```
+
+   При открытии файл подтягивает шаблон из репозитория и собирает отчет, человеку ничего вставлять не надо. Если создавать файлы ты не умеешь, верни только JSON в одном блоке кода: человек вставит его в goodkp.html из репозитория.
 
 ## Вводные
 

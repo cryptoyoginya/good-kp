@@ -131,7 +131,7 @@ Good КП собирает этих троих синтетически, чит�
 
 Три пути к одному и тому же файлу:
 
-- **В чате с моделью.** Откройте Claude или другой чат, вставьте ссылку на [prompt.md](https://raw.githubusercontent.com/cryptoyoginya/good-kp/main/prompt.md), текст КП и шесть ответов, попросите прочитать инструкцию целиком. Модель вернет JSON. Скачайте [goodkp.html](goodkp.html) из репозитория, откройте в браузере, вставьте JSON, нажмите «Собрать отчет», затем «Сохранить HTML». Работает уже сейчас.
+- **В чате с моделью.** Откройте Claude, вставьте ссылку на [prompt.md](https://raw.githubusercontent.com/cryptoyoginya/good-kp/main/prompt.md), текст КП и шесть ответов, попросите прочитать инструкцию целиком. Claude вернет файл отчета. Откройте его в браузере: файл сам подтянет шаблон из репозитория и соберет отчет, кнопка «Сохранить HTML» даст автономную копию. Если чат не умеет отдавать файлы, он вернет JSON: тогда скачайте [goodkp.html](goodkp.html), откройте, вставьте JSON. Работает уже сейчас.
 - **Через агента.** Дайте агенту с доступом к файлам (Claude Code, Cursor) ссылку на репозиторий, КП и шесть ответов. `prompt.md` ведет его: заполнить JSON, проверить схемой, собрать `report.html`. В Claude Code внутри клона есть команда `/good-kp`, она делает то же по шагам. Работает уже сейчас.
 - **Из терминала.** `uv run goodkp run kp.pdf --answers answers.yaml`. Читает файл, зовет модель, собирает отчет. В работе.
 
@@ -143,6 +143,7 @@ Good КП собирает этих троих синтетически, чит�
 goodkp/
   schema.py        контракт данных (pydantic), экспорт JSON-схемы
   render.py        вставка JSON в шаблон, сборка автономного HTML
+  loader.py        файл-загрузчик: данные внутри, шаблон подтягивается из репозитория
 template/
   report.html      шаблон отчета: стили, рендер из JSON, интерактивы
 schema/
@@ -153,10 +154,11 @@ scripts/
   build_example.py    пересборка examples/stroymarket.html
   build_goodkp.py     пересборка goodkp.html
   build_report.py     report.json на вход, готовый отчет на выход
+  build_loader.py     report.json на вход, файл-загрузчик на выход
 tests/
   golden/stroymarket/report.json   эталонный отчет
   test_schema.py  test_render.py  test_golden.py  test_example.py
-  test_template_static.py  test_ui.py
+  test_template_static.py  test_ui.py  test_loader.py
 examples/
   stroymarket.html  собранный эталонный отчет
 prompt.md          инструкция для модели и агента: методика, читатели, голос, контракт
