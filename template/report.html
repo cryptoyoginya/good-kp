@@ -491,6 +491,7 @@ body.nodata .nodata-msg{display:block;padding:80px 28px;color:var(--ink2)}
 #saveBtn{position:fixed;right:24px;bottom:24px;z-index:80;font:inherit;font-size:15px;font-weight:600;color:#fff;background:var(--accent);border:0;border-radius:999px;padding:13px 24px;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.45);transition:filter .2s,transform .2s var(--ease)}
 #saveBtn:hover{filter:brightness(1.08)}
 #saveBtn:active{transform:scale(.98)}
+body.pasted{padding-bottom:88px}
 @media (max-width:640px){.paste{padding:22px 18px 24px}#saveBtn{right:14px;bottom:14px}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -906,7 +907,7 @@ window.GK = (function(){
     var el = root.querySelector('#data');
     if (el) el.textContent = payload(GK.data || null);
     var b = root.querySelector('body');
-    if (b) b.classList.remove('nodata');
+    if (b) { b.classList.remove('nodata'); b.classList.remove('pasted'); }
     var box = root.querySelector('#pasteBox');
     if (box) box.textContent = '';
     var sb = root.querySelector('#saveBtn');
@@ -949,6 +950,7 @@ window.GK = (function(){
         return;
       }
       if (save) save.hidden = false;
+      document.body.classList.add('pasted');
       window.scrollTo(0, 0);
     }
     run.addEventListener('click', go);
