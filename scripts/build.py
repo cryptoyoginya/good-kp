@@ -109,8 +109,8 @@ def check(d):
     if len(fp.get("sections", [])) != 6 or not fp.get("contacts") or not fp.get("subject"):
         p.append("fixed_page: subject, contacts и ровно 6 sections")
     total = sum(int(s.get("minutes", 0)) for s in d["plan"])
-    if not 4 <= len(d["plan"]) <= 6 or not 45 <= total <= 75:
-        p.append(f"plan: от 4 до 6 шагов, сумма минут 45..75, сейчас {len(d['plan'])} шагов и {total} минут")
+    if not 4 <= len(d["plan"]) <= 6 or total != 60:
+        p.append(f"plan: от 4 до 6 шагов, сумма минут ровно 60, сейчас {len(d['plan'])} шагов и {total} минут")
     if [s.get("id") for s in d["source"]] != [f"src-{i}" for i in range(1, len(d["source"]) + 1)]:
         p.append("source: id подряд src-1..N")
     for s in d["source"]:
