@@ -1,61 +1,6 @@
-# Good КП. Промпт для прогона коммерческого предложения
+# Методика и контракт данных Good КП
 
-Этот файл читает модель или агент. Человеку достаточно дать ссылку на репозиторий, текст КП и ответы на шесть вопросов из раздела «Вводные». Все остальное описано здесь.
-
-## Задача
-
-Прочитать коммерческое предложение (КП) глазами трех людей на стороне клиента, разобрать его по шести опорам методики Вадима Школьного и вернуть данные отчета строго по схеме `schema/report.schema.json`. Разметку не писать: отчет собирает шаблон `template/report.html` из JSON.
-
-## Если ты агент с доступом к репозиторию
-
-1. Прочитай `goodkp/schema.py` целиком (контракт вместе с перекрестными проверками, это точнее экспортированной JSON-схемы) и `tests/golden/stroymarket/report.json` (полный образец заполнения на синтетическом КП). Образец показывает объем, тон и детализацию каждого поля.
-2. Получи от человека текст КП и шесть ответов из раздела «Вводные». Если КП пришло файлом, извлеки текст сам.
-3. Составь `report.json` по правилам ниже. Абзацы исходного КП пронумеруй как `src-1..N` и положи в `source`.
-4. Перед валидацией найди запрещенные символы, это самый частый повод для падения:
-   ```
-   grep -n '—\|·\|ё\|Ё' report.json
-   ```
-   Замени тире на запятую или точку, «ё» на «е», «·» убери. Это касается и текста исходного КП в `source`.
-5. Проверь и собери одной командой. `REPO` это путь к репозиторию, `report.json` лежит рядом с тобой:
-   ```
-   uv run --directory REPO python REPO/scripts/build_report.py "$PWD/report.json" "$PWD/report.html"
-   ```
-   Скрипт валидирует JSON схемой и пишет `report.html`. Ошибки валидации исправляй в данных и запускай снова, пока не соберется.
-6. Если скрипт сообщил об отказе (`refusal`), передай человеку причину и подсказку, отчета не будет.
-7. Отдай человеку `report.html`. Открывается в любом браузере.
-
-Если `uv` нет, подойдет `pip install pydantic` и обычный `python` с `PYTHONPATH=REPO`.
-
-## Если ты модель в чате без инструментов
-
-Тебе дали ссылку на этот файл, текст КП и ответы на шесть вопросов. Сделай так:
-
-1. Прочитай по ссылкам образец и контракт, они короткие:
-   https://raw.githubusercontent.com/cryptoyoginya/good-kp/main/tests/golden/stroymarket/report.json
-   https://raw.githubusercontent.com/cryptoyoginya/good-kp/main/goodkp/schema.py
-   Если ссылки недоступны, работай по разделам ниже, в них есть все ограничения.
-2. Если ответов на шесть вопросов нет, задай их одним сообщением и дождись ответа.
-3. Составь JSON по правилам ниже. Перед выдачей проверь сам: нет «—», «·», «ё», все обязательные поля на месте, счетчики сходятся (6 опор, 3 читателя, 8..14 сообщений, сумма минут 45..75).
-4. Отдай человеку готовый файл отчета, если умеешь создавать файлы (артефакты, вложения). Имя файла: `КП <клиент>, прогон.html`. Содержимое файла ровно такое, вместо `…JSON…` подставь свой JSON целиком, больше ничего не меняй:
-
-```html
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>Good КП</title></head><body style="margin:0;background:#000;color:#8e8e93;font:15px -apple-system,BlinkMacSystemFont,sans-serif;padding:48px 28px">Собираю отчет. Нужна сеть, шаблон подтягивается из репозитория.
-<script type="application/json" id="data">
-…JSON…
-</script>
-<script>
-fetch('https://raw.githubusercontent.com/cryptoyoginya/good-kp/main/goodkp.html').then(function(r){ return r.text(); }).then(function(t){
-  var d = document.getElementById('data').textContent.replace(/<\//g, '<\\/');
-  var h = t.replace('<html lang="ru">', '<html lang="ru" data-loader>')
-           .replace('id="data"><\/script>', 'id="data">' + d + '<\/script>');
-  document.open(); document.write(h); document.close();
-}).catch(function(){
-  document.body.textContent = 'Нет сети. Откройте goodkp.html из репозитория и вставьте данные из этого файла.';
-});
-</script></body></html>
-```
-
-   При открытии файл подтягивает шаблон из репозитория и собирает отчет, человеку ничего вставлять не надо. Если создавать файлы ты не умеешь, верни только JSON в одном блоке кода: человек вставит его в goodkp.html из репозитория.
+Это справочник для модели. Читать целиком перед тем, как писать JSON отчета. Образец готового JSON лежит рядом: `reference/example.json`.
 
 ## Вводные
 
@@ -78,7 +23,7 @@ fetch('https://raw.githubusercontent.com/cryptoyoginya/good-kp/main/goodkp.html'
 {"version": "1.0.0", "methodology_version": "1.0", "refusal": {"reason": "…", "hint": "…"}}
 ```
 
-`reason` объясняет, что не так, `hint` говорит, что прислать вместо.
+`reason` объясняет, что не так, `hint` говорит, что прислать вместо. Отчет в этом случае не собирается, человеку передается причина.
 
 ## Методика
 
@@ -137,7 +82,7 @@ fetch('https://raw.githubusercontent.com/cryptoyoginya/good-kp/main/goodkp.html'
 
 ## Контракт данных, главное
 
-Полное описание в `schema/report.schema.json`, образец в `tests/golden/stroymarket/report.json`. Ограничения, на которых чаще всего ломается валидация:
+Образец заполнения в `reference/example.json`. Ограничения, которые проверяет `scripts/build.py`:
 
 - `meta.kp_number`: номер из КП; если номера нет, «б/н». `meta.title`: заголовок отчета до 60 символов, утверждение без двоеточий. `run_date` в ISO с московским смещением `+03:00`. `kp_date` в формате `YYYY-MM-DD`.
 - `intake`: ровно 6 пар `{k, v}`.

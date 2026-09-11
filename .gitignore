@@ -1,9 +1,4 @@
-.venv/
-__pycache__/
-*.pyc
-.pytest_cache/
-test-results/
-tests/screenshots/actual/
 .env
 .vercel/
-.vercel
+__pycache__/
+*.pyc
