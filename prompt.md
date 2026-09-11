@@ -44,7 +44,7 @@
 …JSON…
 </script>
 <script>
-fetch('https://cdn.jsdelivr.net/gh/cryptoyoginya/good-kp@main/goodkp.html').then(function(r){ return r.text(); }).then(function(t){
+fetch('https://raw.githubusercontent.com/cryptoyoginya/good-kp/main/goodkp.html').then(function(r){ return r.text(); }).then(function(t){
   var d = document.getElementById('data').textContent.replace(/<\//g, '<\\/');
   var h = t.replace('<html lang="ru">', '<html lang="ru" data-loader>')
            .replace('id="data"><\/script>', 'id="data">' + d + '<\/script>');
