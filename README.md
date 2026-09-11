@@ -152,6 +152,7 @@ scripts/
   expected_text.py    ожидаемый текст секций для теста эквивалентности
   build_example.py    пересборка examples/stroymarket.html
   build_goodkp.py     пересборка goodkp.html
+  build_report.py     report.json на вход, готовый отчет на выход
 tests/
   golden/stroymarket/report.json   эталонный отчет
   test_schema.py  test_render.py  test_golden.py  test_example.py
@@ -171,6 +172,12 @@ docs/
 uv sync --group dev
 uv run playwright install chromium
 uv run pytest -q
+```
+
+Собрать отчет из готового JSON:
+
+```bash
+uv run python scripts/build_report.py report.json
 ```
 
 Пересобрать пример и файл для вставки:

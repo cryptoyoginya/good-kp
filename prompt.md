@@ -16,15 +16,12 @@
    grep -n '—\|·\|ё\|Ё' report.json
    ```
    Замени тире на запятую или точку, «ё» на «е», «·» убери. Это касается и текста исходного КП в `source`.
-5. Проверь JSON схемой. Команды запускаются из любой папки, `REPO` это путь к репозиторию, `report.json` лежит рядом с тобой:
+5. Проверь и собери одной командой. `REPO` это путь к репозиторию, `report.json` лежит рядом с тобой:
    ```
-   uv run --directory REPO python -c "import json,sys; from goodkp.schema import Report; Report.model_validate(json.load(open(sys.argv[1], encoding='utf-8'))); print('ok')" "$PWD/report.json"
+   uv run --directory REPO python REPO/scripts/build_report.py "$PWD/report.json" "$PWD/report.html"
    ```
-   Ошибки валидации исправляй в данных, пока не будет `ok`.
-6. Собери отчет:
-   ```
-   uv run --directory REPO python -c "import json,sys; from goodkp.render import render; from goodkp.schema import Report; open(sys.argv[2],'w',encoding='utf-8').write(render(Report.model_validate(json.load(open(sys.argv[1], encoding='utf-8')))))" "$PWD/report.json" "$PWD/report.html"
-   ```
+   Скрипт валидирует JSON схемой и пишет `report.html`. Ошибки валидации исправляй в данных и запускай снова, пока не соберется.
+6. Если скрипт сообщил об отказе (`refusal`), передай человеку причину и подсказку, отчета не будет.
 7. Отдай человеку `report.html`. Открывается в любом браузере.
 
 Если `uv` нет, подойдет `pip install pydantic` и обычный `python` с `PYTHONPATH=REPO`.
