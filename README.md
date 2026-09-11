@@ -129,9 +129,10 @@ Good КП собирает этих троих синтетически, чит�
   -> report.html
 ```
 
-Два пути к одному и тому же файлу:
+Три пути к одному и тому же файлу:
 
-- **Через агента.** Дайте агенту (Claude Code, Cursor, любой с доступом к файлам) ссылку на этот репозиторий, текст КП и шесть ответов. В `prompt.md` описано, что делать: заполнить JSON по схеме, проверить, собрать `report.html`. Работает уже сейчас.
+- **В чате с моделью.** Откройте Claude или другой чат, вставьте ссылку на [prompt.md](https://raw.githubusercontent.com/cryptoyoginya/good-kp/main/prompt.md), текст КП и шесть ответов. Модель вернет JSON. Скачайте [goodkp.html](goodkp.html) из репозитория, откройте в браузере, вставьте JSON, нажмите «Собрать отчет», затем «Сохранить HTML». Работает уже сейчас.
+- **Через агента.** Дайте агенту с доступом к файлам (Claude Code, Cursor) ссылку на репозиторий, КП и шесть ответов. `prompt.md` ведет его: заполнить JSON, проверить схемой, собрать `report.html`. Работает уже сейчас.
 - **Из терминала.** `uv run goodkp run kp.pdf --answers answers.yaml`. Читает файл, зовет модель, собирает отчет. В работе.
 
 Экспорт в Word подгружает JSZip с cdnjs, для него нужна сеть. Все остальное работает офлайн.
@@ -150,6 +151,7 @@ scripts/
   extract_golden.py   эталонные данные из прототипа
   expected_text.py    ожидаемый текст секций для теста эквивалентности
   build_example.py    пересборка examples/stroymarket.html
+  build_goodkp.py     пересборка goodkp.html
 tests/
   golden/stroymarket/report.json   эталонный отчет
   test_schema.py  test_render.py  test_golden.py  test_example.py
@@ -157,6 +159,7 @@ tests/
 examples/
   stroymarket.html  собранный эталонный отчет
 prompt.md          инструкция для модели и агента: методика, читатели, голос, контракт
+goodkp.html        файл для вставки JSON: открыть, вставить, собрать, сохранить
 docs/
   spec.md          дизайн системы
   screens/         скриншоты для этого README
@@ -170,10 +173,11 @@ uv run playwright install chromium
 uv run pytest -q
 ```
 
-Пересобрать пример из эталонных данных:
+Пересобрать пример и файл для вставки:
 
 ```bash
 uv run python scripts/build_example.py
+uv run python scripts/build_goodkp.py
 ```
 
 ## Бот доступа
