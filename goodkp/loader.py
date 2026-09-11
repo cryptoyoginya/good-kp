@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-TEMPLATE_URL = "https://cdn.jsdelivr.net/gh/cryptoyoginya/good-kp@main/goodkp.html"
+TEMPLATE_URL = "https://raw.githubusercontent.com/cryptoyoginya/good-kp/main/goodkp.html"
 
 HEAD = (
     '<!doctype html><html lang="ru"><head><meta charset="utf-8">'
