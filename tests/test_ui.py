@@ -357,3 +357,20 @@ def test_broken_json_named_in_panel(fresh, goodkp_uri):
     assert "JSON не разобран" in err
     assert pg.evaluate("() => document.body.classList.contains('nodata')")
     assert pg.errors == []
+
+
+def test_serialized_file_starts_unrevealed(page_html, page):
+    """Сохраненный файл не должен уносить с собой состояние прокрутки."""
+    import json
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    pg = page.context.browser.new_page(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
+    pg.goto((root / "goodkp.html").as_uri()); pg.wait_for_timeout(300)
+    pg.fill("#pasteBox", (root / "tests/golden/stroymarket/report.json").read_text(encoding="utf-8"))
+    pg.click("#pasteRun"); pg.wait_for_timeout(600)
+    pg.evaluate("window.scrollTo(0, document.body.scrollHeight)"); pg.wait_for_timeout(600)
+    assert pg.evaluate("document.querySelectorAll('.rv.in').length") > 0
+    html = pg.evaluate("GK.serialize()")
+    assert 'class="' not in html or " rv in" not in html
+    assert html.startswith("<!doctype html>")
+    pg.close()
