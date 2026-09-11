@@ -44,7 +44,7 @@ def api(monkeypatch):
     return fake
 
 
-def message_update(user_id=1, chat_id=1, text="/start"):
+def message_update(user_id=1, chat_id=1, text="привет"):
     return {
         "update_id": 1,
         "message": {
@@ -74,15 +74,37 @@ def callback_update(user_id=1, chat_id=1, message_id=10, callback_id="cb1"):
     }
 
 
-def test_all_subscribed_replies_with_repo_link(api):
+def test_all_subscribed_sends_photo_file_and_instructions(api):
     core.handle_update(message_update())
 
-    sent = api.calls_for("sendMessage")
-    assert len(sent) == 1
-    text = sent[0]["text"]
+    order = [m for m, _ in api.calls if m != "getChatMember"]
+    assert order == ["sendPhoto", "sendDocument", "sendMessage"]
+    photo = api.calls_for("sendPhoto")[0]
+    assert photo["photo"].endswith("/main/docs/preview.png")
+    assert photo["photo"].startswith("https://raw.githubusercontent.com/")
+    doc = api.calls_for("sendDocument")[0]
+    assert doc["document"].endswith("/main/examples/stroymarket.html")
+    text = api.calls_for("sendMessage")[0]["text"]
     assert "https://github.com/vinter/good-kp" in text
-    assert "reply_markup" not in sent[0] or sent[0]["reply_markup"] is None
-    assert text.count("\n") >= 2
+    assert "Как прогнать свое КП" in text and "Методика" in text
+
+
+def test_start_sends_welcome_with_buttons(api):
+    core.handle_update(message_update(text="/start"))
+
+    assert api.calls_for("getChatMember") == []
+    sent = api.calls_for("sendMessage")
+    assert len(sent) == 1 and "Good КП" in sent[0]["text"]
+    rows = sent[0]["reply_markup"]["inline_keyboard"]
+    assert rows[-1][0]["callback_data"] == "recheck"
+    assert sum(1 for row in rows for b in row if "url" in b) == 2
+
+
+def test_callback_when_subscribed_sends_access(api):
+    core.handle_update(callback_update())
+
+    order = [m for m, _ in api.calls if m != "getChatMember"]
+    assert order == ["answerCallbackQuery", "editMessageText", "sendPhoto", "sendDocument", "sendMessage"]
 
 
 def test_one_channel_missing_lists_it_and_shows_keyboard(api):
@@ -99,7 +121,7 @@ def test_one_channel_missing_lists_it_and_shows_keyboard(api):
     rows = markup["inline_keyboard"]
     url_buttons = [b for row in rows for b in row if "url" in b]
     callback_buttons = [b for row in rows for b in row if b.get("callback_data") == "recheck"]
-    assert len(url_buttons) == 2
+    assert len(url_buttons) == 1 and url_buttons[0]["url"].endswith("/ShkolnyiAccount")
     assert len(callback_buttons) == 1
 
 

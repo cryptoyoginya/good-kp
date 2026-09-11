@@ -80,40 +80,106 @@ def check_subscriptions(user_id: int, channels: list[str]) -> dict:
     return result
 
 
+WELCOME = (
+    "Good КП. Прогон коммерческого предложения глазами клиента.\n\n"
+    "Загружаете КП, отвечаете на шесть вопросов, получаете разбор: что подумал гендир, "
+    "что подумал тот, кто понесет ему документ, и что подумал тот, кому с этим жить. "
+    "Шесть опор, флаги, исправленная первая страница и план правок на час.\n\n"
+    "Методика Вадима Школьного, @ShkolnyiAccount. Сборка Кристины Винтер, @vintersbrain.\n\n"
+    "Инструмент бесплатный и лежит на GitHub. Ссылку выдаю подписчикам обоих каналов."
+)
+
+ACCESS_PHOTO_CAPTION = (
+    "Так выглядит прогон. Это разбор синтетического КП «Пиксель Лаб» "
+    "для сети строительных гипермаркетов."
+)
+
+ACCESS_FILE_CAPTION = (
+    "Пример отчета. Откройте файл в браузере на компьютере: внутри переписка "
+    "у клиента, голосовой вердикт гендира, три читателя, шесть опор, "
+    "экран с флагами, исправленная первая страница и таймер на час правок."
+)
+
+
+def access_text(repo_url: str) -> str:
+    return (
+        f"Доступ открыт. Репозиторий: {repo_url}\n\n"
+        "Что внутри отчета\n"
+        "Переписка внутри клиента, как обсуждали ваше КП. Вердикт гендира голосом. "
+        "Три читателя: кто платит, кто продвигает, кто будет с этим жить, и что подумал каждый. "
+        "Прогон по шести опорам с цитатами из КП и переписанными фрагментами. "
+        "Флаги на экране блокировки. Исправленная первая страница, скачивается в Word и PDF. "
+        "План правок на час с таймером. Методика со ссылками на посты.\n\n"
+        "Как посмотреть пример\n"
+        "1. Скачайте файл выше и откройте в браузере на компьютере.\n"
+        "2. Пройдите сверху вниз: чат проигрывается сам, диктофон и таймер запускаются кнопками, "
+        "опоры раскрываются, экран телефона раскрывается по тапу.\n"
+        "3. В разделе «Исправленная первая страница» нажмите «Развернуть», ниже появятся Word и PDF.\n\n"
+        "Как прогнать свое КП\n"
+        "Без кода: файл prompt.md из репозитория плюс текст вашего КП и ответы на шесть вопросов "
+        "(клиент, проект, кто получит КП, стадия сделки, цель клиента, бюджет) вставляете в чат с моделью, "
+        "получаете JSON, вставляете его в paste.html из репозитория, скачиваете отчет.\n"
+        "Из терминала: клонируете репозиторий, ставите uv, затем "
+        "uv sync и uv run goodkp run kp.pdf --answers answers.yaml.\n"
+        "Оба пути в работе, prompt.md, paste.html и команда появятся в ближайшем обновлении. "
+        "Сейчас в репозитории пример, методика в README, схема данных и шаблон отчета.\n\n"
+        "Методика\n"
+        "В README раздел «Методика»: шесть опор с вопросом клиента и тем, что проверяется, "
+        "и десять принципов Вадима со ссылками на посты.\n\n"
+        "Вопросы и баги: @vintersbrain. Если разбор оказался полезным, расскажите о нем."
+    )
+
+
+def raw_url(repo_url: str, path: str) -> str:
+    base = repo_url.rstrip("/").replace("github.com", "raw.githubusercontent.com")
+    return f"{base}/main/{path}"
+
+
+def welcome_markup(channels: list[str]) -> dict:
+    buttons = [[{"text": channel_label(c), "url": f"https://t.me/{c}"}] for c in channels]
+    buttons.append([{"text": "Получить ссылку", "callback_data": "recheck"}])
+    return {"inline_keyboard": buttons}
+
+
+def send_access(chat_id: int, repo_url: str) -> None:
+    """Три сообщения: скриншот, файл примера, подробная инструкция."""
+    tg("sendPhoto", chat_id=chat_id, photo=raw_url(repo_url, "docs/preview.png"),
+       caption=ACCESS_PHOTO_CAPTION)
+    tg("sendDocument", chat_id=chat_id, document=raw_url(repo_url, "examples/stroymarket.html"),
+       caption=ACCESS_FILE_CAPTION)
+    tg("sendMessage", chat_id=chat_id, text=access_text(repo_url),
+       disable_web_page_preview=True)
+
+
 def build_reply(status: dict, repo_url: str, channels: list[str]):
-    """Возвращает (текст, reply_markup | None)."""
+    """Текст и клавиатура для случая, когда доступ пока закрыт.
+    Для открытого доступа возвращает короткий текст без клавиатуры,
+    сами материалы шлет send_access."""
     if all(status.get(c) == "ok" for c in channels):
-        text = (
-            f"Доступ открыт. Репозиторий: {repo_url}\n\n"
-            "Как начать:\n"
-            "1. Откройте README в репозитории.\n"
-            "2. Установите зависимости по инструкции.\n"
-            "3. Запустите пример из папки examples."
-        )
-        return text, None
+        return f"Готово, подписки на месте. Репозиторий: {repo_url}", None
 
     missing = [c for c in channels if status.get(c) == "no"]
     unknown = [c for c in channels if status.get(c) == "unknown"]
 
     lines = []
     if missing:
-        names = ", ".join(channel_label(c) for c in missing)
-        lines.append(f"Не хватает подписки: {names}.")
+        names = ", ".join(f"@{c}" for c in missing)
+        lines.append(f"Пока не вижу подписки на {names}.")
+        lines.append("Подпишитесь и нажмите «Проверить снова». Проверка занимает секунду.")
     if unknown:
-        names = ", ".join(channel_label(c) for c in unknown)
+        names = ", ".join(f"@{c}" for c in unknown)
         lines.append(
-            f"Бот пока не администратор в канале: {names}. "
-            "Это нужно исправить владельцу бота."
+            f"В канале {names} бот еще не администратор, проверить подписку не могу. "
+            "Это на стороне авторов, скоро починим. Нажмите «Проверить снова» позже."
         )
-    lines.append("Подпишитесь на каналы и нажмите «Проверить снова».")
     text = "\n".join(lines)
 
     buttons = [
-        [{"text": channel_label(c), "url": f"https://t.me/{c}"}] for c in channels
+        [{"text": channel_label(c), "url": f"https://t.me/{c}"}]
+        for c in channels if status.get(c) != "ok"
     ]
     buttons.append([{"text": "Проверить снова", "callback_data": "recheck"}])
-    reply_markup = {"inline_keyboard": buttons}
-    return text, reply_markup
+    return text, {"inline_keyboard": buttons}
 
 
 def _is_not_modified(response: dict) -> bool:
@@ -128,7 +194,14 @@ def handle_update(update: dict) -> None:
         message = update["message"]
         chat_id = message["chat"]["id"]
         user_id = message["from"]["id"]
+        if (message.get("text") or "").strip().startswith("/start"):
+            tg("sendMessage", chat_id=chat_id, text=WELCOME,
+               reply_markup=welcome_markup(channels), disable_web_page_preview=True)
+            return
         status = check_subscriptions(user_id, channels)
+        if all(status.get(c) == "ok" for c in channels):
+            send_access(chat_id, repo_url)
+            return
         text, reply_markup = build_reply(status, repo_url, channels)
         tg("sendMessage", chat_id=chat_id, text=text, reply_markup=reply_markup)
         return
@@ -155,4 +228,6 @@ def handle_update(update: dict) -> None:
             # Не роняем обработчик из-за прочих ошибок Telegram: бот
             # без состояния, следующая проверка исправит расхождение.
             pass
+        if all(status.get(c) == "ok" for c in channels):
+            send_access(chat_id, repo_url)
         return
