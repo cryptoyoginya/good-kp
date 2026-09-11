@@ -240,3 +240,120 @@ def test_mount_twice_does_not_duplicate(page, page_html):
     assert heads == 1 and got["heads"] == 1
     assert got["bars"] == bars
     assert got["blocks"] == 6 and got["cards"] == 6
+
+
+# --- панель вставки JSON ---
+
+@pytest.fixture
+def fresh(page):
+    """Свежая страница в том же браузере: вложенный sync_playwright падает."""
+    made = []
+
+    def open_uri(uri):
+        pg = page.context.browser.new_page(viewport={"width": 1280, "height": 900},
+                                           reduced_motion="reduce")
+        errors = []
+        pg.on("pageerror", lambda e: errors.append(str(e)))
+        pg.goto(uri)
+        pg.wait_for_timeout(400)
+        pg.errors = errors
+        made.append(pg)
+        return pg
+
+    yield open_uri
+    for pg in made:
+        pg.close()
+
+
+@pytest.fixture(scope="module")
+def goodkp_uri(request):
+    return (request.config.rootpath / "goodkp.html").as_uri()
+
+
+@pytest.fixture(scope="module")
+def golden_text(request):
+    p = request.config.rootpath / "tests" / "golden" / "stroymarket" / "report.json"
+    return p.read_text(encoding="utf-8")
+
+
+def build(pg, text):
+    """Вставить текст в панель и нажать «Собрать отчет»."""
+    pg.fill("#pasteBox", text)
+    pg.click("#pasteRun")
+    pg.wait_for_timeout(600)
+
+
+def test_goodkp_opens_with_paste_panel(fresh, goodkp_uri):
+    pg = fresh(goodkp_uri)
+    assert pg.evaluate("() => document.body.classList.contains('nodata')")
+    assert pg.locator("#pasteBox").is_visible()
+    assert pg.locator("#pasteRun").is_visible()
+    assert pg.locator("#pasteFile").is_visible()
+    assert not pg.locator("#saveBtn").is_visible()
+    assert pg.errors == []
+
+
+def test_paste_builds_report(fresh, goodkp_uri, golden_text, golden_data):
+    pg = fresh(goodkp_uri)
+    build(pg, golden_text)
+    assert not pg.evaluate("() => document.body.classList.contains('nodata')")
+    for sec in ["s-toc", "s-intake", "s-verdict", "s-readers", "s-blocks", "s-flags",
+                "s-fixed", "s-plan", "s-method", "s-source"]:
+        assert pg.locator("#" + sec).count() == 1
+    assert norm(pg.evaluate("() => document.querySelector('.hero h1').innerText")) == \
+        norm(golden_data["meta"]["title"])
+    assert pg.locator("#saveBtn").is_visible()
+    assert pg.errors == []
+
+
+def test_serialized_file_renders_on_its_own(fresh, goodkp_uri, golden_text, tmp_path):
+    pg = fresh(goodkp_uri)
+    build(pg, golden_text)
+    saved = tmp_path / "saved.html"
+    saved.write_text(pg.evaluate("() => GK.serialize()"), encoding="utf-8")
+    out = fresh(saved.as_uri())
+    assert not out.evaluate("() => document.body.classList.contains('nodata')")
+    assert out.locator("#s-blocks .block").count() == 6
+    assert not out.locator("#saveBtn").is_visible()
+    assert out.evaluate("() => document.querySelector('#pasteBox').value") == ""
+    assert out.errors == []
+
+
+def test_em_dash_reported_yo_fixed(fresh, goodkp_uri, golden_data):
+    d = json.loads(json.dumps(golden_data))
+    d["verdict"]["text"] = "Всё не так. " + d["verdict"]["text"]
+    d["blocks"][0]["why"] = "Срок — выдуман. " + d["blocks"][0]["why"]
+    pg = fresh(goodkp_uri)
+    build(pg, json.dumps(d, ensure_ascii=False))
+    err = pg.evaluate("() => document.querySelector('#pasteErr').innerText")
+    assert "тире" in err
+    assert "blocks[0].why" in err
+    assert pg.evaluate("() => document.body.classList.contains('nodata')")
+
+    d["blocks"][0]["why"] = d["blocks"][0]["why"].replace("—", "взят с потолка,")
+    build(pg, json.dumps(d, ensure_ascii=False))
+    assert not pg.evaluate("() => document.body.classList.contains('nodata')")
+    got = pg.evaluate("() => document.querySelector('#memo').innerText")
+    assert "ё" not in got
+    assert "Все" in got
+    assert pg.errors == []
+
+
+def test_refusal_named_in_panel(fresh, goodkp_uri):
+    pg = fresh(goodkp_uri)
+    build(pg, json.dumps({"refusal": {"reason": "не КП", "hint": "пришлите документ"}},
+                         ensure_ascii=False))
+    err = pg.evaluate("() => document.querySelector('#pasteErr').innerText")
+    assert "не КП" in err
+    assert "пришлите документ" in err
+    assert pg.evaluate("() => document.body.classList.contains('nodata')")
+    assert pg.errors == []
+
+
+def test_broken_json_named_in_panel(fresh, goodkp_uri):
+    pg = fresh(goodkp_uri)
+    build(pg, "{не json")
+    err = pg.evaluate("() => document.querySelector('#pasteErr').innerText")
+    assert "JSON не разобран" in err
+    assert pg.evaluate("() => document.body.classList.contains('nodata')")
+    assert pg.errors == []

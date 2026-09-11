@@ -470,6 +470,28 @@ footer .fine{margin-top:44px;font-size:12.5px;color:var(--faint);text-align:cent
 .nodata-msg{display:none}
 body.nodata main>section,body.nodata .hero,body.nodata header .meta{display:none}
 body.nodata .nodata-msg{display:block;padding:80px 28px;color:var(--ink2)}
+
+/* панель вставки JSON: видна только пока данных нет */
+.paste{max-width:760px;margin:0 auto;background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:26px 28px 28px}
+.paste h2{font-size:26px;font-weight:600;color:var(--ink)}
+.paste-help{margin:8px 0 18px;font-size:15px;color:var(--sub);max-width:60ch}
+#pasteBox{display:block;width:100%;min-height:220px;resize:vertical;padding:14px 16px;border-radius:14px;border:1px solid var(--line2);background:var(--bg);color:var(--ink);font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;font-size:13px;line-height:1.5}
+#pasteBox::placeholder{color:var(--faint)}
+#pasteBox:focus{outline:none;border-color:var(--accent)}
+.paste-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px}
+#pasteRun{font:inherit;font-size:15px;font-weight:600;color:#fff;background:var(--accent);border:0;border-radius:999px;padding:11px 22px;cursor:pointer;transition:filter .2s,transform .2s var(--ease)}
+#pasteRun:hover{filter:brightness(1.08)}
+#pasteRun:active{transform:scale(.98)}
+#pasteFile{font:inherit;font-size:13px;color:var(--sub);max-width:100%}
+#pasteFile::file-selector-button{font:inherit;font-size:15px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:0;border-radius:999px;padding:10px 18px;margin-right:12px;cursor:pointer;transition:filter .2s}
+#pasteFile::file-selector-button:hover{filter:brightness(1.15)}
+#pasteErr:not(:empty){margin-top:18px;padding:12px 18px;border-radius:14px;background:var(--crit-soft);border:1px solid var(--crit)}
+#pasteErr ul{margin:0;padding-left:20px}
+#pasteErr li{font-size:14.5px;line-height:1.5;padding:3px 0;color:var(--ink)}
+#saveBtn{position:fixed;right:24px;bottom:24px;z-index:80;font:inherit;font-size:15px;font-weight:600;color:#fff;background:var(--accent);border:0;border-radius:999px;padding:13px 24px;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.45);transition:filter .2s,transform .2s var(--ease)}
+#saveBtn:hover{filter:brightness(1.08)}
+#saveBtn:active{transform:scale(.98)}
+@media (max-width:640px){.paste{padding:22px 18px 24px}#saveBtn{right:14px;bottom:14px}}
 </style>
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body><script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>document.documentElement.classList.add('js')</script>
@@ -822,10 +844,123 @@ window.GK = (function(){
 
   var NEED = ['meta', 'intake', 'readers', 'chat', 'verdict', 'blocks',
               'flags', 'holds', 'fixed_page', 'plan', 'source'];
+  var DASH = '\u2014', YO = /\u0451/g, YO_UP = /\u0401/g, MIDDOT = /\u00b7/g;
+
+  /* Список претензий к JSON в панели вставки. Пусто, когда претензий нет. */
+  function problems(list){
+    var box = document.getElementById('pasteErr');
+    if (!box) return;
+    box.innerHTML = list.length
+      ? '<ul>' + list.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>'
+      : '';
+  }
   function nodata(msg){
     document.body.classList.add('nodata');
-    if (msg) { var box = document.querySelector('.nodata-msg'); if (box) box.textContent = msg; }
+    if (msg) problems([msg]);
   }
+
+  /* Чистка строки: букву с двумя точками меняем на е, точку-разделитель убираем молча.
+     Длинное тире только называем: замена тут меняла бы смысл, решать человеку. */
+  function fixStr(s, path, found){
+    if (s.indexOf(DASH) >= 0 && found.indexOf(path) < 0) found.push(path);
+    return s.replace(YO, '\u0435').replace(YO_UP, '\u0415').replace(MIDDOT, '');
+  }
+  function walk(node, path, found){
+    var arr = Array.isArray(node);
+    var keys = arr ? node.map(function(_, i){ return i; }) : Object.keys(node);
+    keys.forEach(function(k){
+      var p = arr ? path + '[' + k + ']' : (path ? path + '.' + k : k);
+      var v = node[k];
+      if (typeof v === 'string') node[k] = fixStr(v, p, found);
+      else if (v && typeof v === 'object') walk(v, p, found);
+    });
+  }
+
+  /* Разбор и проверки до сборки. Возвращает данные и список претензий. */
+  GK.prepare = function(text){
+    var d;
+    try { d = JSON.parse(text); }
+    catch (e) { return { data: null, problems: ['JSON не разобран: ' + e.message] }; }
+    if (!d || typeof d !== 'object' || Array.isArray(d))
+      return { data: null, problems: ['JSON не разобран: в корне ожидается объект'] };
+    if (d.refusal) {
+      var r = d.refusal;
+      return { data: d, problems: ['Модель не стала делать прогон: ' +
+        (r.reason || 'причина не названа') + (r.hint ? '. ' + r.hint : '')] };
+    }
+    var out = [];
+    var missing = NEED.filter(function(k){ return d[k] == null; });
+    if (missing.length) out.push('В JSON нет полей: ' + missing.join(', '));
+    var found = [];
+    walk(d, '', found);
+    if (found.length) out.push('Длинное тире в полях: ' + found.slice(0, 10).join(', ') +
+      (found.length > 10 ? ' и еще ' + (found.length - 10) : ''));
+    return { data: d, problems: out };
+  };
+
+  function payload(d){ return JSON.stringify(d).replace(/<\//g, '<\\/'); }
+
+  /* Готовый одиночный файл: копия документа с данными внутри, без панели. */
+  GK.serialize = function(){
+    var root = document.documentElement.cloneNode(true);
+    var el = root.querySelector('#data');
+    if (el) el.textContent = payload(GK.data || null);
+    var b = root.querySelector('body');
+    if (b) b.classList.remove('nodata');
+    var box = root.querySelector('#pasteBox');
+    if (box) box.textContent = '';
+    var sb = root.querySelector('#saveBtn');
+    if (sb) sb.setAttribute('hidden', '');
+    /* строку с типом документа собираем из двух кусков: в шаблоне каркаса быть
+       не должно, это стережет tests/test_render.py */
+    return '<!' + 'doctype html>' + root.outerHTML;
+  };
+
+  GK.save = function(){
+    var name = 'КП ' + (GK.data ? GK.clientShort(GK.data) : 'без имени') + ', прогон.html';
+    var url = URL.createObjectURL(new Blob([GK.serialize()], { type: 'text/html;charset=utf-8' }));
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+  };
+
+  /* Панель вставки: textarea, файл, кнопка сборки, кнопка сохранения. */
+  GK.paste = function(){
+    var box = document.getElementById('pasteBox'), run = document.getElementById('pasteRun'),
+        file = document.getElementById('pasteFile'), save = document.getElementById('saveBtn');
+    if (save) save.addEventListener('click', GK.save);
+    if (!box || !run) return;
+    function go(){
+      problems([]);
+      var txt = (box.value || '').trim();
+      if (!txt) { problems(['Поле пустое. Вставьте JSON или выберите файл report.json']); return; }
+      var res = GK.prepare(txt);
+      if (res.problems.length) { problems(res.problems); return; }
+      var el = document.getElementById('data');
+      if (el) el.textContent = payload(res.data);
+      document.body.classList.remove('nodata');
+      try { GK.mount(res.data); }
+      catch (e) {
+        document.body.classList.add('nodata');
+        problems(['Отчет не собрался: ' + e.message]);
+        console.error('Good КП: рендер упал', e);
+        return;
+      }
+      if (save) save.hidden = false;
+      window.scrollTo(0, 0);
+    }
+    run.addEventListener('click', go);
+    if (file) file.addEventListener('change', function(){
+      var f = file.files && file.files[0];
+      if (!f) return;
+      var rd = new FileReader();
+      rd.onload = function(){ box.value = String(rd.result || ''); go(); };
+      rd.onerror = function(){ problems(['Файл не прочитан']); };
+      rd.readAsText(f);
+    });
+  };
   GK.boot = function(){
     var el = document.getElementById('data'), txt = (el && el.textContent || '').trim();
     if (!txt) { nodata(); return false; }
@@ -867,7 +1002,18 @@ window.GK = (function(){
 
 <main>
 
-<div class="nodata-msg">Нет данных. Вставьте report.json в блок <code>#data</code> или соберите отчет по инструкции из prompt.md.</div>
+<div class="nodata-msg">
+  <div class="paste">
+    <h2>Соберите отчет из JSON</h2>
+    <p class="paste-help">Вставьте JSON, который вернула модель, или выберите файл report.json</p>
+    <textarea id="pasteBox" spellcheck="false" aria-label="JSON отчета" placeholder="{&quot;version&quot;: &quot;1.0.0&quot;, &quot;meta&quot;: {...}}"></textarea>
+    <div class="paste-row">
+      <button type="button" id="pasteRun">Собрать отчет</button>
+      <input type="file" id="pasteFile" accept=".json,application/json" aria-label="Файл report.json">
+    </div>
+    <div id="pasteErr" aria-live="polite"></div>
+  </div>
+</div>
 
 <section id="s-toc" class="tocsec">
   <div class="wrap">
@@ -1447,5 +1593,6 @@ GK.init = function(){
   });
 };
 </script>
-<script>GK.boot();</script>
+<button type="button" id="saveBtn" hidden>Сохранить HTML</button>
+<script>GK.boot(); GK.paste();</script>
 </body></html>

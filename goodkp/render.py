@@ -36,6 +36,11 @@ def wrap(inner: str) -> str:
     return HEAD + head + RESET + "</head><body>" + body + "</body></html>"
 
 
+def render_empty(template: str | None = None) -> str:
+    """Каркас без данных: блок #data пуст, страница показывает панель вставки."""
+    return wrap(template or load_template())
+
+
 def render(report: Report, template: str | None = None) -> str:
     data = report.model_dump(by_alias=True, exclude_none=True)
     return wrap(inject(template or load_template(), data))
