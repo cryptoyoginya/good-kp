@@ -173,3 +173,40 @@ def test_empty_table_rejected():
     d["source"] = [{"id": "src-1", "kind": "table", "rows": [["шапка"], []]}]
     with pytest.raises(ValidationError, match="пустых строк"):
         Report.model_validate(d)
+
+
+def test_feed_steps_must_be_ordered():
+    d = minimal(); d["readers"][1]["feed"][2]["step"] = "3"
+    d["readers"][1]["feed"][1]["step"] = "3"
+    with pytest.raises(ValidationError, match="по порядку"):
+        Report.model_validate(d)
+
+
+def test_flag_from_must_be_reader_name():
+    d = minimal(); d["flags"][0] = {"from": "Никита", "title": "з", "text": "т"}
+    with pytest.raises(ValidationError, match="Никита"):
+        Report.model_validate(d)
+
+
+def test_source_ids_sequential():
+    d = minimal(); d["source"] = [{"id": "src-2", "kind": "p", "text": "а"}]
+    with pytest.raises(ValidationError, match="src-1"):
+        Report.model_validate(d)
+
+
+def test_title_without_colon_and_dates_formatted():
+    d = minimal(); d["meta"]["title"] = "Вердикт: плохо"
+    with pytest.raises(ValidationError, match="двоеточ"):
+        Report.model_validate(d)
+    d = minimal(); d["meta"]["kp_date"] = "21.08.2026"
+    with pytest.raises(ValidationError, match="kp_date"):
+        Report.model_validate(d)
+    d = minimal(); d["meta"]["run_date"] = "2026-09-07 14:24"
+    with pytest.raises(ValidationError, match="run_date"):
+        Report.model_validate(d)
+
+
+def test_do_must_not_start_with_label():
+    d = minimal(); d["blocks"][0]["do"] = "Что делать. Переписать"
+    with pytest.raises(ValidationError, match="Что делать"):
+        Report.model_validate(d)

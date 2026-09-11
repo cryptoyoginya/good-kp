@@ -35,11 +35,18 @@ class Refusal(Strict):
 
 class Meta(Strict):
     kp_number: str
-    kp_date: str
+    kp_date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
     vendor: str
     client: str
-    run_date: str
+    run_date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?[+-]\d{2}:\d{2}$")
     title: str = Field(max_length=60)
+
+    @field_validator("title")
+    @classmethod
+    def _title_no_colon(cls, v: str) -> str:
+        if ":" in v:
+            raise ValueError("meta.title: заголовок без двоеточий")
+        return v
 
 
 class KV(Strict):
@@ -205,6 +212,19 @@ class Report(Strict):
         words = len(self.verdict.text.split())
         if not 25 <= words <= 60:
             raise ValueError(f"verdict.text: от 25 до 60 слов, сейчас {words}")
+        for r in self.readers:
+            steps = [f.step for f in r.feed if f.step != "pre"]
+            if steps != ["1", "2", "3", "4", "5", "6"]:
+                raise ValueError(f"feed у {r.name}: шаги 1..6 по порядку без пропусков, сейчас {steps}")
+        names = {r.name for r in self.readers}
+        strangers = [f.from_ for f in self.flags if f.from_ not in names]
+        if strangers:
+            raise ValueError(f"flags.from должен быть именем читателя: {strangers}")
+        if [s.id for s in self.source] != [f"src-{i}" for i in range(1, len(self.source) + 1)]:
+            raise ValueError("source: id должны идти src-1..N подряд")
+        bad_do = [b.id for b in self.blocks if b.do.lstrip().lower().startswith("что делать")]
+        if bad_do:
+            raise ValueError(f"blocks.do не начинается со слов «Что делать»: блоки {bad_do}")
         return self
 
 
