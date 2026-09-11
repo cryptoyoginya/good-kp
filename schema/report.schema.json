@@ -328,6 +328,7 @@
      "type": "string"
     },
     "kp_date": {
+     "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
      "title": "Kp Date",
      "type": "string"
     },
@@ -340,6 +341,7 @@
      "type": "string"
     },
     "run_date": {
+     "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2})?[+-]\\d{2}:\\d{2}$",
      "title": "Run Date",
      "type": "string"
     },
