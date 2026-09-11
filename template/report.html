@@ -912,9 +912,12 @@ window.GK = (function(){
     if (box) box.textContent = '';
     var sb = root.querySelector('#saveBtn');
     if (sb) sb.setAttribute('hidden', '');
+    /* чистое состояние: появление секций, активная пилюля, раскрытые блоки */
+    root.querySelectorAll('.in').forEach(function(el){ el.classList.remove('in'); });
+    root.querySelectorAll('.pillnav a.cur').forEach(function(el){ el.classList.remove('cur'); });
     /* строку с типом документа собираем из двух кусков: в шаблоне каркаса быть
        не должно, это стережет tests/test_render.py */
-    return '<!' + 'doctype html>' + root.outerHTML;
+    return '<!doctype html>' + root.outerHTML;
   };
 
   GK.save = function(){
@@ -958,7 +961,7 @@ window.GK = (function(){
       var f = file.files && file.files[0];
       if (!f) return;
       var rd = new FileReader();
-      rd.onload = function(){ box.value = String(rd.result || ''); go(); };
+      rd.onload = function(){ box.value = String(rd.result || ''); file.value = ''; go(); };
       rd.onerror = function(){ problems(['Файл не прочитан']); };
       rd.readAsText(f);
     });
@@ -968,6 +971,7 @@ window.GK = (function(){
     if (!txt) { nodata(); return false; }
     var d;
     try { d = JSON.parse(txt); } catch (e) { nodata(); console.error('Good КП: JSON не разобран', e); return false; }
+    if (!d || typeof d !== 'object') { nodata(); return false; }
     if (d.refusal) { nodata(); console.error('Good КП: отказ', d.refusal.reason); return false; }
     var missing = NEED.filter(function(k){ return d[k] == null; });
     if (missing.length) { nodata('В JSON нет полей: ' + missing.join(', ')); console.error('Good КП: нет полей', missing); return false; }

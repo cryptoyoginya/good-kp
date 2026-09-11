@@ -31,5 +31,8 @@ def test_render_golden(golden_path):
     assert "До стола директора" in html and html.count('id="data"') == 1
 
 def test_template_has_no_skeleton(template_path):
+    """Каркас добавляет wrap(); в статичной разметке шаблона его нет. Тела скриптов не считаются."""
+    import re
     s = load_template()
-    assert "<!doctype" not in s.lower() and "<body" not in s
+    markup = re.sub(r"<script\b[^>]*>.*?</script>", "", s, flags=re.S)
+    assert "<!doctype" not in markup.lower() and "<body" not in markup
